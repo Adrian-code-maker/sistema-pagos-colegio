@@ -302,17 +302,20 @@ app.get('/api/health', async (req, res) => {
   }
 });
 // ========================================================
-// RUTA SECRETA BLINDADA CON ENCRIPTACIÓN
+// RUTA SECRETA BLINDADA CON RESET DE TABLAS
 // ========================================================
 app.get('/inicializar-sistema-12febrero', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
-        // Encriptamos 'admin123' para que bcrypt no explote al comparar
         const claveEncriptada = await bcrypt.hash('admin123', 10);
 
-        // Creamos la tabla con todas las columnas posibles para no fallar
+        // 🔥 EL TRUCO: Borramos las tablas viejas mal estructuradas para limpiar la base de datos
+        await pool.query(`DROP TABLE IF EXISTS usuarios CASCADE;`);
+        await pool.query(`DROP TABLE IF EXISTS ajustes CASCADE;`);
+
+        // Creamos la tabla limpia desde cero con todas las columnas universales
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS usuarios (
+            CREATE TABLE usuarios (
                 id SERIAL PRIMARY KEY,
                 correo VARCHAR(100) UNIQUE NOT NULL,
                 email VARCHAR(100) UNIQUE,
@@ -323,7 +326,7 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
             );
         `);
         
-        // Inyectamos el administrador en todas las variantes de columnas
+        // Inyectamos el administrador en todos los campos posibles
         await pool.query(`
             INSERT INTO usuarios (correo, email, clave, password, contrasena, rol) 
             VALUES (
@@ -333,13 +336,12 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
                 '${claveEncriptada}', 
                 '${claveEncriptada}', 
                 'admin'
-            ) 
-            ON CONFLICT (correo) DO NOTHING;
+            );
         `);
 
-        // Tabla de ajustes base
+        // Recreamos la tabla de ajustes
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS ajustes (
+            CREATE TABLE ajustes (
                 clave VARCHAR(50) UNIQUE NOT NULL,
                 valor VARCHAR(50) NOT NULL
             );
@@ -349,14 +351,13 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
             INSERT INTO ajustes (clave, valor) VALUES 
             ('precio_mensualidad', '60.00'),
             ('tasa_bs', '45.00'),
-            ('tasa_pesos', '3900')
-            ON CONFLICT (clave) DO NOTHING;
+            ('tasa_pesos', '3900');
         `);
 
         res.send(`
             <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-                <h1 style="color:#28a745;">🎉 ¡Base de Datos Sincronizada y Encriptada! 🎉</h1>
-                <p style="font-size:18px;">Columnas universales creadas con éxito.</p>
+                <h1 style="color:#28a745;">🎉 ¡Base de Datos Resetada e Inicializada! 🎉</h1>
+                <p style="font-size:18px;">El Administrador universal ya está listo en internet.</p>
                 <a href="/login.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Ir al Login</a>
             </div>
         `);
