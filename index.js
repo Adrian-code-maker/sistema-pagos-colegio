@@ -302,19 +302,20 @@ app.get('/api/health', async (req, res) => {
   }
 });
 // ========================================================
-// RUTA SECRETA MAESTRA - RECONSTRUCCIÓN TOTAL DE TABLAS
+// RUTA SECRETA MAESTRA - RECONSTRUCCIÓN TOTAL CON PAGOS
 // ========================================================
 app.get('/inicializar-sistema-12febrero', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
         const claveEncriptada = await bcrypt.hash('admin123', 10);
 
-        // Limpiamos todo el terreno para evitar duplicados o choques
+        // Limpiamos absolutamente todo para evitar choques de columnas
+        await pool.query(`DROP TABLE IF EXISTS pagos CASCADE;`);
         await pool.query(`DROP TABLE IF EXISTS alumnos CASCADE;`);
         await pool.query(`DROP TABLE IF EXISTS usuarios CASCADE;`);
         await pool.query(`DROP TABLE IF EXISTS ajustes CASCADE;`);
 
-        // 1. Creamos la tabla de usuarios completa (con nombres, cédulas y estatus)
+        // 1. Tabla de usuarios
         await pool.query(`
             CREATE TABLE usuarios (
                 id SERIAL PRIMARY KEY,
@@ -327,28 +328,17 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
                 password VARCHAR(100),
                 contrasena VARCHAR(100),
                 rol VARCHAR(20) NOT NULL DEFAULT 'representante',
-                estatus VARCHAR(20) NOT NULL DEFAULT 'pendiente'
+                estatus VARCHAR(20) NOT NULL DEFAULT 'activo'
             );
         `);
         
-        // Sembramos al Administrador de la defensa con todos sus campos activos
+        // Sembramos al Administrador de la defensa
         await pool.query(`
             INSERT INTO usuarios (nombre_completo, nombre, cedula, correo, email, clave, password, contrasena, rol, estatus) 
-            VALUES (
-                'Administrador General', 
-                'Administrador General', 
-                'V-00000000', 
-                'admin@12febrero.com', 
-                'admin@12febrero.com', 
-                '${claveEncriptada}', 
-                '${claveEncriptada}', 
-                '${claveEncriptada}', 
-                'admin', 
-                'activo'
-            );
+            VALUES ('Administrador General', 'Administrador General', 'V-00000000', 'admin@12febrero.com', 'admin@12febrero.com', '${claveEncriptada}', '${claveEncriptada}', '${claveEncriptada}', 'admin', 'activo');
         `);
 
-        // 2. Creamos la tabla de alumnos (para que guarde los hijos sin romper nada)
+        // 2. Tabla de alumnos
         await pool.query(`
             CREATE TABLE alumnos (
                 id SERIAL PRIMARY KEY,
@@ -364,7 +354,26 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
             );
         `);
 
-        // 3. Creamos la tabla de ajustes de tasas
+        // 3. 🔥 TABLA DE PAGOS (La que faltaba para procesar los reportes)
+        await pool.query(`
+            CREATE TABLE pagos (
+                id SERIAL PRIMARY KEY,
+                usuario_id INT,
+                representante_id INT,
+                representante_nombre VARCHAR(150),
+                mes_pagado TEXT,
+                monto VARCHAR(50),
+                moneda VARCHAR(20),
+                referencia VARCHAR(100),
+                banco_origen VARCHAR(100),
+                banco_destino VARCHAR(100),
+                comprobante VARCHAR(255),
+                estatus_pago VARCHAR(50) DEFAULT 'pendiente',
+                mensaje_rechazo TEXT
+            );
+        `);
+
+        // 4. Tabla de ajustes de tasas
         await pool.query(`
             CREATE TABLE ajustes (
                 clave VARCHAR(50) UNIQUE NOT NULL,
@@ -381,9 +390,9 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
 
         res.send(`
             <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-                <h1 style="color:#28a745;">🚀 ¡Estructura de Base de Datos Sincronizada al 100%! 🚀</h1>
-                <p style="font-size:18px;">Tablas 'usuarios', 'alumnos' y 'ajustes' creadas con éxito con todas sus columnas.</p>
-                <a href="/registro.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Volver a intentar el registro</a>
+                <h1 style="color:#28a745;">🚀 ¡Base de Datos Completa al 100%! 🚀</h1>
+                <p style="font-size:18px;">Tablas 'usuarios', 'alumnos', 'pagos' y 'ajustes' sincronizadas de forma indestructible.</p>
+                <a href="/login.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Ir al Login</a>
             </div>
         `);
     } catch (error) {
