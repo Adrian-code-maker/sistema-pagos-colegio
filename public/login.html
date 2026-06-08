@@ -26,6 +26,12 @@
         .btn-login:hover { background: #172554; }
         .footer-link { margin-top: 18px; font-size: 12px; color: #64748b; }
         .footer-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+        /* AJUSTE MÓVIL DIRECTO */
+        @media (max-width: 400px) {
+            body { padding: 12px; }
+            .login-card { padding: 25px 20px; }
+        }
     </style>
 </head>
 <body>
@@ -73,30 +79,22 @@
                 const res = await r.json();
                 
                 if (r.ok) {
-                    // 🛡️ EXTRACTOR SUPREMO: Busca las variables tanto si vienen sueltas o anidadas en objeto usuario
                     const datosSeguros = res.usuario || res.user || res;
                     const idFinal = datosSeguros.id || res.id;
                     const nombreFinal = datosSeguros.nombre_completo || datosSeguros.nombre || res.nombre_completo || "Representante";
                     const rolFinal = datosSeguros.rol || res.rol || "representante";
                     
-                    // Guardamos la sesión limpia y verídica
                     localStorage.setItem('usuarioLogueado', JSON.stringify({ id: idFinal, nombre: nombreFinal, rol: rolFinal }));
                     
                     Swal.fire({ title: `¡Bienvenido!`, icon: 'success', timer: 1200, showConfirmButton: false }).then(() => {
-                        if (rolFinal === 'admin') {
-                            window.location.href = 'admin.html'; 
-                        } else {
-                            window.location.href = 'dashboard.html'; 
-                        }
+                        if (rolFinal === 'admin') { window.location.href = 'admin.html'; } else { window.location.href = 'dashboard.html'; }
                     });
                 } else { 
-                    btn.innerHTML = textoOriginal;
-                    btn.disabled = false;
+                    btn.innerHTML = textoOriginal; btn.disabled = false;
                     Swal.fire({ title: 'Error de Acceso', text: res.mensaje, icon: 'error' });
                 }
             } catch (e) { 
-                btn.innerHTML = textoOriginal;
-                btn.disabled = false; 
+                btn.innerHTML = textoOriginal; btn.disabled = false; 
                 Swal.fire('Error', 'Fallo de conexión con el servidor', 'error'); 
             }
         });
