@@ -302,22 +302,16 @@ app.get('/api/health', async (req, res) => {
   }
 });
 // ========================================================
-// RUTA SECRETA MAESTRA - RECONSTRUCCIÓN TOTAL CON PAGOS
+// RUTA SECRETA MAESTRA - TRUNCADO SEGURO ANTI-CHOQUES
 // ========================================================
 app.get('/inicializar-sistema-12febrero', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
         const claveEncriptada = await bcrypt.hash('admin123', 10);
 
-        // Limpiamos absolutamente todo para evitar choques de columnas
-        await pool.query(`DROP TABLE IF EXISTS pagos CASCADE;`);
-        await pool.query(`DROP TABLE IF EXISTS alumnos CASCADE;`);
-        await pool.query(`DROP TABLE IF EXISTS usuarios CASCADE;`);
-        await pool.query(`DROP TABLE IF EXISTS ajustes CASCADE;`);
-
-        // 1. Tabla de usuarios
+        // 1. Creamos las estructuras base SI NO EXISTEN (Evita tocar el catálogo interno si ya están creadas)
         await pool.query(`
-            CREATE TABLE usuarios (
+            CREATE TABLE IF NOT EXISTS usuarios (
                 id SERIAL PRIMARY KEY,
                 nombre_completo VARCHAR(150),
                 nombre VARCHAR(150),
@@ -331,16 +325,9 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
                 estatus VARCHAR(20) NOT NULL DEFAULT 'activo'
             );
         `);
-        
-        // Sembramos al Administrador de la defensa
-        await pool.query(`
-            INSERT INTO usuarios (nombre_completo, nombre, cedula, correo, email, clave, password, contrasena, rol, estatus) 
-            VALUES ('Administrador General', 'Administrador General', 'V-00000000', 'admin@12febrero.com', 'admin@12febrero.com', '${claveEncriptada}', '${claveEncriptada}', '${claveEncriptada}', 'admin', 'activo');
-        `);
 
-        // 2. Tabla de alumnos
         await pool.query(`
-            CREATE TABLE alumnos (
+            CREATE TABLE IF NOT EXISTS alumnos (
                 id SERIAL PRIMARY KEY,
                 usuario_id INT,
                 representante_id INT,
@@ -354,9 +341,8 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
             );
         `);
 
-        // 3. 🔥 TABLA DE PAGOS (La que faltaba para procesar los reportes)
         await pool.query(`
-            CREATE TABLE pagos (
+            CREATE TABLE IF NOT EXISTS pagos (
                 id SERIAL PRIMARY KEY,
                 usuario_id INT,
                 representante_id INT,
@@ -373,14 +359,22 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
             );
         `);
 
-        // 4. Tabla de ajustes de tasas
         await pool.query(`
-            CREATE TABLE ajustes (
+            CREATE TABLE IF NOT EXISTS ajustes (
                 clave VARCHAR(50) UNIQUE NOT NULL,
                 valor VARCHAR(50) NOT NULL
             );
         `);
-        
+
+        // 2. 🔥 EL TRUCO MAESTRO: Vaciamos y reseteamos los IDs de todas las tablas limpiamente sin destruirlas
+        await pool.query(`TRUNCATE TABLE pagos, alumnos, usuarios, ajustes RESTART IDENTITY CASCADE;`);
+
+        // 3. Sembramos los datos limpios de la defensa
+        await pool.query(`
+            INSERT INTO usuarios (nombre_completo, nombre, cedula, correo, email, clave, password, contrasena, rol, estatus) 
+            VALUES ('Administrador General', 'Administrador General', 'V-00000000', 'admin@12febrero.com', 'admin@12febrero.com', '${claveEncriptada}', '${claveEncriptada}', '${claveEncriptada}', 'admin', 'activo');
+        `);
+
         await pool.query(`
             INSERT INTO ajustes (clave, valor) VALUES 
             ('precio_mensualidad', '60.00'),
@@ -390,8 +384,8 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
 
         res.send(`
             <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-                <h1 style="color:#28a745;">🚀 ¡Base de Datos Completa al 100%! 🚀</h1>
-                <p style="font-size:18px;">Tablas 'usuarios', 'alumnos', 'pagos' y 'ajustes' sincronizadas de forma indestructible.</p>
+                <h1 style="color:#28a745;">🚀 ¡Base de Datos Inicializada al 100%! 🚀</h1>
+                <p style="font-size:18px;">El sistema se encuentra limpio, vacío y listo para la defensa.</p>
                 <a href="/login.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Ir al Login</a>
             </div>
         `);
