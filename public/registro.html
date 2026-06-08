@@ -9,9 +9,8 @@
     <style>
         :root { --primary: #1e3a8a; --bg: #0f172a; --text: #334155; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: #f1f5f9; min-height: 100vh; display: flex; }
+        body { background: #f1f5f9; min-height: 100vh; display: flex; flex-direction: row; }
 
-        /* Diseño de pantalla dividida elegante */
         .sidebar { background: linear-gradient(185deg, var(--bg) 0%, var(--primary) 100%); width: 35%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; position: fixed; height: 100vh; left: 0; top: 0; }
         .sidebar img { height: 90px; background: white; border-radius: 50%; padding: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 20px; }
         .sidebar h2 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
@@ -35,7 +34,6 @@
         
         select.form-control { padding-left: 12px; cursor: pointer; }
 
-        /* Estilos específicos de la fila del alumno */
         .alumno-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
 
         .btn-add { background: none; border: none; color: #2563eb; font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 12px; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
@@ -46,6 +44,17 @@
 
         .footer-link { margin-top: 20px; font-size: 13px; color: #64748b; text-align: center; }
         .footer-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+        /* REESTRUCTURACIÓN MÓVIL EXCLUSIVA */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { position: static; width: 100%; height: auto; padding: 30px 15px; }
+            .sidebar p { max-width: 100%; }
+            .form-container { width: 100%; margin-left: 0; padding: 20px 15px; }
+            .register-card { padding: 25px 20px; }
+            .form-grid { grid-template-columns: 1fr; gap: 12px; }
+            .alumno-grid { grid-template-columns: 1fr; gap: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -132,20 +141,6 @@
                                         <option>B</option>
                                     </select>
                                 </div>
-                                <div class="form-group" style="display:none;">
-                                    <label>Mención</label>
-                                    <select class="form-control menAlu" style="display:none;">
-                                        <option>Telemática</option>
-                                        <option>Laboratorio Clínico</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="display:none;" >
-                                    <label>Mención</label>
-                                    <select class="form-control menAlu" style="display:none;">
-                                        <option>Telemática</option>
-                                        <option>Laboratorio Clínico</option>
-                                    </select>
-                                </div>
                         </div>
                     </div>
                 </div>
@@ -162,7 +157,6 @@
     </div>
 
     <script>
-        // Función para inyectar un nuevo alumno idéntico al presionar el botón +
         function agregarAlumno() { 
             const html = `
             <div class="alumno-item" style="margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-bottom: 15px;">
@@ -174,13 +168,13 @@
                             <input type="text" class="form-control nomAlu" required placeholder="Nombre completo del estudiante">
                         </div>
                     </div>
-                            <div class="form-group">
-                                <label>Cédula Escolar / Identidad</label>
-                                <div class="input-wrapper">
-                                    <i class='bx bx-id-card'></i>
-                                    <input type="text" class="form-control cedAlu" placeholder="Ej: V-12345678">
-                                </div>
-                            </div>
+                    <div class="form-group">
+                        <label>Cédula Escolar / Identidad</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-id-card'></i>
+                            <input type="text" class="form-control cedAlu" placeholder="Ej: V-12345678">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Año/Nivel</label>
                         <select class="form-control nivAlu">
@@ -197,30 +191,14 @@
                             <option>B</option>
                         </select>
                     </div>
-                    <div class="form-group" style="display:none;" id="menPlaceholder">
-                        <label>Mención</label>
-                        <select class="form-control menAlu" style="display:none;">
-                            <option>Telemática</option>
-                            <option>Laboratorio Clínico</option>
-                        </select>
-                    </div>
-                            <div class="form-group" style="display:none;">
-                                <label>Mención</label>
-                                <select class="form-control menAlu" style="display:none;">
-                                    <option>Telemática</option>
-                                    <option>Laboratorio Clínico</option>
-                                </select>
-                            </div>
                 </div>
             </div>`; 
             document.getElementById('contenedorAlumnos').insertAdjacentHTML('beforeend', html); 
-            // initialize behavior for the newly added row
             const container = document.getElementById('contenedorAlumnos');
             const newRow = container.lastElementChild;
             setupAlumnoRow(newRow);
         }
 
-        // Envío asíncrono seguro al backend
         document.getElementById('registroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmit');
@@ -228,20 +206,17 @@
             btnSubmit.disabled = true;
 
             const alumnos = [];
-            
-            // Captura los datos en vivo de cada una de las filas de alumnos creadas
             document.querySelectorAll('.alumno-item').forEach(item => { 
                 const nivelVal = item.querySelector('.nivAlu').value;
                 const isGrado = /Grado/i.test(nivelVal);
                 const seccionVal = item.querySelector('.secAlu') ? item.querySelector('.secAlu').value : '';
-                const mencionVal = item.querySelector('.menAlu') ? item.querySelector('.menAlu').value : '';
                 const cedulaVal = item.querySelector('.cedAlu') ? item.querySelector('.cedAlu').value : '';
                 alumnos.push({ 
                     nombre_completo: item.querySelector('.nomAlu').value, 
                     cedula_alumno: cedulaVal,
                     nivel: nivelVal, 
                     seccion: isGrado ? (seccionVal || 'Ninguna') : 'Ninguna',
-                    mencion: !isGrado ? (mencionVal || 'Ninguna') : 'Ninguna'
+                    mencion: 'Ninguna'
                 }); 
             });
 
@@ -256,45 +231,33 @@
             try {
                 const r = await fetch('/api/registro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 const res = await r.json();
-                
                 if (r.ok) { 
                     alert('✅ Registro exitoso. Espere activación del administrador.'); 
                     window.location.href = 'login.html'; 
                 } else { 
-                    btnSubmit.innerHTML = "Registrar mi Cuenta";
-                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = "Registrar mi Cuenta"; btnSubmit.disabled = false;
                     alert('❌ ' + res.mensaje); 
                 }
             } catch (e) { 
-                btnSubmit.innerHTML = "Registrar mi Cuenta";
-                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = "Registrar mi Cuenta"; btnSubmit.disabled = false;
                 alert('❌ Error conectando con el servidor.'); 
             }
         });
 
-        // Setup behavior for grado vs año toggle
         function setupAlumnoRow(row) {
             if (!row) return;
             const niv = row.querySelector('.nivAlu');
             const sec = row.querySelector('.secAlu');
             const secWrapper = sec ? sec.closest('.form-group') : null;
-            const men = row.querySelector('.menAlu');
-            const menWrapper = men ? men.closest('.form-group') : null;
             const updateVisibility = () => {
                 const val = niv.value || '';
                 const isGrado = /Grado/i.test(val);
                 if (secWrapper) secWrapper.style.display = isGrado ? '' : 'none';
                 if (sec) sec.style.display = isGrado ? '' : 'none';
-                if (menWrapper) menWrapper.style.display = isGrado ? 'none' : '';
-                if (men) men.style.display = isGrado ? 'none' : '';
             };
-            // initial
             updateVisibility();
-            // events
             if (niv) niv.addEventListener('change', updateVisibility);
         }
-
-        // Initialize existing rows
         document.querySelectorAll('.alumno-item').forEach(r => setupAlumnoRow(r));
     </script>
 </body>
