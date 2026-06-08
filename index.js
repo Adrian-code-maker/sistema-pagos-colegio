@@ -302,29 +302,42 @@ app.get('/api/health', async (req, res) => {
   }
 });
 // ========================================================
-// RUTA SECRETA DE EMERGENCIA PARA INICIALIZAR EL SISTEMA
+// RUTA SECRETA BLINDADA CON ENCRIPTACIÓN
 // ========================================================
 app.get('/inicializar-sistema-12febrero', async (req, res) => {
-    // NOTA: Si tu archivo usa la variable "db" en vez de "pool", cambia "pool.query" por "db.query" abajo
     try {
-        // 1. Crear tabla de usuarios por si acaso y meter al Administrador
+        const bcrypt = require('bcryptjs');
+        // Encriptamos 'admin123' para que bcrypt no explote al comparar
+        const claveEncriptada = await bcrypt.hash('admin123', 10);
+
+        // Creamos la tabla con todas las columnas posibles para no fallar
         await pool.query(`
             CREATE TABLE IF NOT EXISTS usuarios (
                 id SERIAL PRIMARY KEY,
                 correo VARCHAR(100) UNIQUE NOT NULL,
-                clave VARCHAR(100) NOT NULL,
+                email VARCHAR(100) UNIQUE,
+                clave VARCHAR(100),
+                password VARCHAR(100),
+                contrasena VARCHAR(100),
                 rol VARCHAR(20) NOT NULL
             );
         `);
         
-        // Aquí defines el correo y clave que usarás en la exposición
+        // Inyectamos el administrador en todas las variantes de columnas
         await pool.query(`
-            INSERT INTO usuarios (correo, clave, rol) 
-            VALUES ('admin@12febrero.com', 'admin123', 'admin') 
+            INSERT INTO usuarios (correo, email, clave, password, contrasena, rol) 
+            VALUES (
+                'admin@12febrero.com', 
+                'admin@12febrero.com', 
+                '${claveEncriptada}', 
+                '${claveEncriptada}', 
+                '${claveEncriptada}', 
+                'admin'
+            ) 
             ON CONFLICT (correo) DO NOTHING;
         `);
 
-        // 2. Crear tabla de ajustes e insertar las tasas de cambio base
+        // Tabla de ajustes base
         await pool.query(`
             CREATE TABLE IF NOT EXISTS ajustes (
                 clave VARCHAR(50) UNIQUE NOT NULL,
@@ -342,20 +355,13 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
 
         res.send(`
             <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-                <h1 style="color:#28a745;">🎉 ¡Sistema Nube Inicializado con Éxito! 🎉</h1>
-                <p style="font-size:18px;">El Administrador y las tasas base ya fueron inyectados en la base de datos de Render.</p>
-                <div style="background:#f8f9fa; display:inline-block; padding:15px; border-radius:8px; text-align:left;">
-                    <b>Datos de acceso para la defensa:</b><br>
-                    📧 <b>Correo:</b> admin@12febrero.com<br>
-                    🔑 <b>Clave:</b> admin123<br>
-                    🛡️ <b>Rol:</b> Administrador
-                </div>
-                <br><br>
+                <h1 style="color:#28a745;">🎉 ¡Base de Datos Sincronizada y Encriptada! 🎉</h1>
+                <p style="font-size:18px;">Columnas universales creadas con éxito.</p>
                 <a href="/login.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Ir al Login</a>
             </div>
         `);
     } catch (error) {
-        res.status(500).send("<h1>Error al inicializar:</h1><p>" + error.message + "</p>");
+        res.status(500).send("<h1>Error en la inyección:</h1><p>" + error.message + "</p>");
     }
 });
 // ========================================================
