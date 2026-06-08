@@ -302,44 +302,69 @@ app.get('/api/health', async (req, res) => {
   }
 });
 // ========================================================
-// RUTA SECRETA BLINDADA CON RESET DE TABLAS
+// RUTA SECRETA MAESTRA - RECONSTRUCCIÓN TOTAL DE TABLAS
 // ========================================================
 app.get('/inicializar-sistema-12febrero', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
         const claveEncriptada = await bcrypt.hash('admin123', 10);
 
-        // 🔥 EL TRUCO: Borramos las tablas viejas mal estructuradas para limpiar la base de datos
+        // Limpiamos todo el terreno para evitar duplicados o choques
+        await pool.query(`DROP TABLE IF EXISTS alumnos CASCADE;`);
         await pool.query(`DROP TABLE IF EXISTS usuarios CASCADE;`);
         await pool.query(`DROP TABLE IF EXISTS ajustes CASCADE;`);
 
-        // Creamos la tabla limpia desde cero con todas las columnas universales
+        // 1. Creamos la tabla de usuarios completa (con nombres, cédulas y estatus)
         await pool.query(`
             CREATE TABLE usuarios (
                 id SERIAL PRIMARY KEY,
+                nombre_completo VARCHAR(150),
+                nombre VARCHAR(150),
+                cedula VARCHAR(50),
                 correo VARCHAR(100) UNIQUE NOT NULL,
                 email VARCHAR(100) UNIQUE,
                 clave VARCHAR(100),
                 password VARCHAR(100),
                 contrasena VARCHAR(100),
-                rol VARCHAR(20) NOT NULL
+                rol VARCHAR(20) NOT NULL DEFAULT 'representante',
+                estatus VARCHAR(20) NOT NULL DEFAULT 'pendiente'
             );
         `);
         
-        // Inyectamos el administrador en todos los campos posibles
+        // Sembramos al Administrador de la defensa con todos sus campos activos
         await pool.query(`
-            INSERT INTO usuarios (correo, email, clave, password, contrasena, rol) 
+            INSERT INTO usuarios (nombre_completo, nombre, cedula, correo, email, clave, password, contrasena, rol, estatus) 
             VALUES (
+                'Administrador General', 
+                'Administrador General', 
+                'V-00000000', 
                 'admin@12febrero.com', 
                 'admin@12febrero.com', 
                 '${claveEncriptada}', 
                 '${claveEncriptada}', 
                 '${claveEncriptada}', 
-                'admin'
+                'admin', 
+                'activo'
             );
         `);
 
-        // Recreamos la tabla de ajustes
+        // 2. Creamos la tabla de alumnos (para que guarde los hijos sin romper nada)
+        await pool.query(`
+            CREATE TABLE alumnos (
+                id SERIAL PRIMARY KEY,
+                usuario_id INT,
+                representante_id INT,
+                nombre_completo VARCHAR(150),
+                nombre VARCHAR(150),
+                cedula VARCHAR(50),
+                cedula_alumno VARCHAR(50),
+                nivel VARCHAR(50),
+                seccion VARCHAR(20),
+                mencion VARCHAR(50)
+            );
+        `);
+
+        // 3. Creamos la tabla de ajustes de tasas
         await pool.query(`
             CREATE TABLE ajustes (
                 clave VARCHAR(50) UNIQUE NOT NULL,
@@ -356,13 +381,13 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
 
         res.send(`
             <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-                <h1 style="color:#28a745;">🎉 ¡Base de Datos Resetada e Inicializada! 🎉</h1>
-                <p style="font-size:18px;">El Administrador universal ya está listo en internet.</p>
-                <a href="/login.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Ir al Login</a>
+                <h1 style="color:#28a745;">🚀 ¡Estructura de Base de Datos Sincronizada al 100%! 🚀</h1>
+                <p style="font-size:18px;">Tablas 'usuarios', 'alumnos' y 'ajustes' creadas con éxito con todas sus columnas.</p>
+                <a href="/registro.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Volver a intentar el registro</a>
             </div>
         `);
     } catch (error) {
-        res.status(500).send("<h1>Error en la inyección:</h1><p>" + error.message + "</p>");
+        res.status(500).send("<h1>Error en la inyección maestra:</h1><p>" + error.message + "</p>");
     }
 });
 // ========================================================
