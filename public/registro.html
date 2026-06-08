@@ -11,13 +11,14 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: #f1f5f9; min-height: 100vh; display: flex; flex-direction: row; }
 
+        /* Diseño elegante de pantalla dividida */
         .sidebar { background: linear-gradient(185deg, var(--bg) 0%, var(--primary) 100%); width: 35%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; position: fixed; height: 100vh; left: 0; top: 0; }
         .sidebar img { height: 90px; background: white; border-radius: 50%; padding: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 20px; }
         .sidebar h2 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
         .sidebar p { font-size: 14px; opacity: 0.8; line-height: 1.6; max-width: 280px; }
 
         .form-container { width: 65%; margin-left: 35%; padding: 50px 60px; display: flex; justify-content: center; align-items: center; }
-        .register-card { background: white; width: 100%; max-width: 650px; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .register-card { background: white; width: 100%; max-width: 700px; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         
         h3 { font-size: 20px; color: var(--bg); font-weight: 700; margin-bottom: 25px; display: flex; align-items: center; gap: 8px; }
         .section-title { font-size: 13px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin: 25px 0 15px 0; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
@@ -34,7 +35,8 @@
         
         select.form-control { padding-left: 12px; cursor: pointer; }
 
-        .alumno-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+        /* Cuadrícula limpia de 4 columnas para escritorio */
+        .alumno-grid { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1fr; gap: 12px; }
 
         .btn-add { background: none; border: none; color: #2563eb; font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 12px; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-add:hover { color: var(--primary); }
@@ -45,7 +47,7 @@
         .footer-link { margin-top: 20px; font-size: 13px; color: #64748b; text-align: center; }
         .footer-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
 
-        /* REESTRUCTURACIÓN MÓVIL EXCLUSIVA */
+        /* Ajustes súper responsivos para teléfonos */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar { position: static; width: 100%; height: auto; padding: 30px 15px; }
@@ -115,7 +117,7 @@
                                 <label>Nombre del Alumno</label>
                                 <div class="input-wrapper">
                                     <i class='bx bx-user-voice'></i>
-                                    <input type="text" class="form-control nomAlu" required placeholder="Nombre completo del estudiante">
+                                    <input type="text" class="form-control nomAlu" required placeholder="Nombre del estudiante">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -128,19 +130,26 @@
                             <div class="form-group">
                                 <label>Año/Nivel</label>
                                 <select class="form-control nivAlu">
-                                        <option>1er Grado</option><option>2do Grado</option><option>3er Grado</option>
-                                        <option>4to Grado</option><option>5to Grado</option><option>6to Grado</option>
-                                        <option>1er Año</option><option>2do Año</option><option>3er Año</option>
-                                        <option>4to Año</option><option>5to Año</option><option>6to Año</option>
+                                    <option>1er Grado</option><option>2do Grado</option><option>3er Grado</option>
+                                    <option>4to Grado</option><option>5to Grado</option><option>6to Grado</option>
+                                    <option>1er Año</option><option>2do Año</option><option>3er Año</option>
+                                    <option>4to Año</option><option>5to Año</option><option>6to Año</option>
                                 </select>
                             </div>
-                                <div class="form-group">
-                                    <label>Sección</label>
-                                    <select class="form-control secAlu">
-                                        <option>A</option>
-                                        <option>B</option>
-                                    </select>
-                                </div>
+                            <div class="form-group wrapper-seccion">
+                                <label>Sección</label>
+                                <select class="form-control secAlu">
+                                    <option>A</option>
+                                    <option>B</option>
+                                </select>
+                            </div>
+                            <div class="form-group wrapper-mencion" style="display:none;">
+                                <label>Mención</label>
+                                <select class="form-control menAlu">
+                                    <option>Telemática</option>
+                                    <option>Laboratorio Clínico</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -157,6 +166,7 @@
     </div>
 
     <script>
+        // Clonador inteligente de filas de alumnos
         function agregarAlumno() { 
             const html = `
             <div class="alumno-item" style="margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-bottom: 15px;">
@@ -165,7 +175,7 @@
                         <label>Nombre del Alumno</label>
                         <div class="input-wrapper">
                             <i class='bx bx-user-voice'></i>
-                            <input type="text" class="form-control nomAlu" required placeholder="Nombre completo del estudiante">
+                            <input type="text" class="form-control nomAlu" required placeholder="Nombre del estudiante">
                         </div>
                     </div>
                     <div class="form-group">
@@ -184,21 +194,27 @@
                             <option>4to Año</option><option>5to Año</option><option>6to Año</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group wrapper-seccion">
                         <label>Sección</label>
                         <select class="form-control secAlu">
                             <option>A</option>
                             <option>B</option>
                         </select>
                     </div>
+                    <div class="form-group wrapper-mencion" style="display:none;">
+                        <label>Mención</label>
+                        <select class="form-control menAlu">
+                            <option>Telemática</option>
+                            <option>Laboratorio Clínico</option>
+                        </select>
+                    </div>
                 </div>
             </div>`; 
             document.getElementById('contenedorAlumnos').insertAdjacentHTML('beforeend', html); 
-            const container = document.getElementById('contenedorAlumnos');
-            const newRow = container.lastElementChild;
-            setupAlumnoRow(newRow);
+            setupAlumnoRow(document.getElementById('contenedorAlumnos').lastElementChild);
         }
 
+        // Envío seguro de datos mapeando según el tipo de nivel seleccionado
         document.getElementById('registroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmit');
@@ -209,14 +225,16 @@
             document.querySelectorAll('.alumno-item').forEach(item => { 
                 const nivelVal = item.querySelector('.nivAlu').value;
                 const isGrado = /Grado/i.test(nivelVal);
-                const seccionVal = item.querySelector('.secAlu') ? item.querySelector('.secAlu').value : '';
-                const cedulaVal = item.querySelector('.cedAlu') ? item.querySelector('.cedAlu').value : '';
+                const seccionVal = item.querySelector('.secAlu').value;
+                const mencionVal = item.querySelector('.menAlu').value;
+                const cedulaVal = item.querySelector('.cedAlu').value;
+                
                 alumnos.push({ 
                     nombre_completo: item.querySelector('.nomAlu').value, 
                     cedula_alumno: cedulaVal,
                     nivel: nivelVal, 
-                    seccion: isGrado ? (seccionVal || 'Ninguna') : 'Ninguna',
-                    mencion: 'Ninguna'
+                    seccion: isGrado ? seccionVal : 'Ninguna',
+                    mencion: !isGrado ? mencionVal : 'Ninguna'
                 }); 
             });
 
@@ -244,20 +262,28 @@
             }
         });
 
+        // El cerebro lógico del cambio dinámico Grado/Año
         function setupAlumnoRow(row) {
             if (!row) return;
             const niv = row.querySelector('.nivAlu');
-            const sec = row.querySelector('.secAlu');
-            const secWrapper = sec ? sec.closest('.form-group') : null;
+            const wrapSeccion = row.querySelector('.wrapper-seccion');
+            const wrapMencion = row.querySelector('.wrapper-mencion');
+
             const updateVisibility = () => {
-                const val = niv.value || '';
-                const isGrado = /Grado/i.test(val);
-                if (secWrapper) secWrapper.style.display = isGrado ? '' : 'none';
-                if (sec) sec.style.display = isGrado ? '' : 'none';
+                const isGrado = /Grado/i.test(niv.value);
+                if (isGrado) {
+                    wrapSeccion.style.display = '';
+                    wrapMencion.style.display = 'none';
+                } else {
+                    wrapSeccion.style.display = 'none';
+                    wrapMencion.style.display = '';
+                }
             };
-            updateVisibility();
-            if (niv) niv.addEventListener('change', updateVisibility);
+            niv.addEventListener('change', updateVisibility);
+            updateVisibility(); // Ejecución inicial al cargar
         }
+
+        // Inicializar la primera fila existente
         document.querySelectorAll('.alumno-item').forEach(r => setupAlumnoRow(r));
     </script>
 </body>
