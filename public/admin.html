@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo | U.E. 12 de Febrero</title>
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #1e3a8a; --primary-light: #2563eb; --bg: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --success: #10b981; --danger: #ef4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); min-height: 100vh; padding-bottom: 50px; }
+        .navbar { background: linear-gradient(90deg, #0f172a 0%, var(--primary) 100%); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .navbar .brand { display: flex; align-items: center; gap: 10px; }
+        .navbar h1 { font-size: 16px; font-weight: 600; }
+        .btn-logout { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; transition: 0.2s; }
+        .btn-logout:hover { background: var(--danger); border-color: var(--danger); }
+        /* Botón estético para gestión */
+        .btn-account { background: rgba(255,255,255,0.08); color: white; border: none; padding: 8px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; box-shadow: 0 4px 14px rgba(2,6,23,0.2); cursor: pointer; transition: transform .12s ease, background .12s ease; }
+        .btn-account i { font-size: 16px; }
+        .btn-account:hover { transform: translateY(-2px); background: rgba(255,255,255,0.14); }
+        .btn-account .btn-account-text { font-size: 13px; color: white; }
+        .main-content { padding: 25px 30px; max-width: 1400px; margin: 0 auto; }
+        .welcome-banner { background: white; border-left: 4px solid var(--primary-light); padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .welcome-banner h2 { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 2px; }
+        .welcome-banner p { font-size: 13px; color: var(--text-muted); }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
+        .search-box { position: relative; flex: 1; max-width: 400px; }
+        .search-box i { position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 16px; }
+        .search-input { width: 100%; padding: 8px 15px 8px 35px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13.5px; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn-print { background: var(--text-main); color: white; border: none; padding: 9px 15px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.3s; }
+        .btn-print:hover { background: #334155; }
+        .section-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin: 20px 0 10px 0; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        /* Config row styles */
+        .config-row { display:flex; gap:12px; align-items:flex-end; }
+        .config-item { display:flex; flex-direction:column; gap:6px; width:160px; }
+        .config-label { font-size:12px; color: #374151; font-weight:700; display:flex; align-items:center; gap:8px; }
+        .config-label i { color: var(--primary); font-size:16px; }
+        .config-input { padding:10px 12px; border-radius:8px; border:1px solid #e6eef8; background:#fbfdff; }
+        .btn-fijar { background: linear-gradient(90deg,#10b981,#059669); color:white; border:none; padding:10px 14px; border-radius:10px; font-weight:700; display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+        .btn-fijar i { font-size:16px; }
+        .table-container { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #f8fafc; padding: 10px 15px; font-weight: 600; color: #64748b; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+        td { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-size: 12.5px; vertical-align: middle; }
+        .no-wrap { white-space: nowrap; }
+        .badge { display: inline-flex; padding: 3px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; }
+        .badge-active { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-pending { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .badge-admin { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .btn-action { border: none; width: 26px; height: 26px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-right: 4px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-approve { background: #ecfdf5; color: var(--success); border: 1px solid #a7f3d0; }
+        .btn-approve:hover { background: var(--success); color: white; }
+        .btn-view { background: #f8fafc; color: #334155; border: 1px solid var(--border); text-decoration: none; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+        .hijos-list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+        .hijos-list li { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 11.5px; border: 1px solid #e2e8f0; font-weight: 500; }
+        @media print {
+            body { background: white; padding: 0; }
+            .navbar, .welcome-banner, .toolbar, .btn-action, .btn-view { display: none !important; }
+            .main-content { padding: 0; max-width: 100%; }
+            .table-container { box-shadow: none; border: 1px solid #000; }
+            th, td { border-bottom: 1px solid #ccc; font-size: 11px; padding: 6px; }
+            .section-title { color: black; margin-top: 30px; }
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+        <div style="display:flex; align-items:center; gap:10px;">
+        <div class="brand"><i class='bx bxs-school' style="font-size:24px;"></i><h1>Módulo Administrativo</h1></div>
+        <button id="btnUserMenu" class="btn-account" title="Gestión de contraseñas"><i class='bx bx-lock-alt'></i><span class="btn-account-text">Gestión de contraseñas</span></button>
+    </div>
+    <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+</div>
+<div class="main-content">
+    <div class="card" style="margin-bottom:18px;">
+        <div class="card-title"><i class='bx bx-cog'></i> Configuración del Sistema</div>
+        <div class="config-row">
+            <div class="config-item">
+                <div class="config-label"><i class='bx bx-dollar'></i> Precio (USD)</div>
+                <input id="precioMensualidadInput" type="text" class="form-control config-input" placeholder="Precio USD">
+            </div>
+            <div class="config-item">
+                <div class="config-label"><i class='bx bx-purchase-tag'></i> Tasa Bs.</div>
+                <input id="tasaBsInput" type="text" class="form-control config-input" placeholder="Tasa Bs">
+            </div>
+            <div class="config-item">
+                <div class="config-label"><i class='bx bx-wallet'></i> Tasa Pesos</div>
+                <input id="tasaPesosInput" type="text" class="form-control config-input" placeholder="Tasa Pesos">
+            </div>
+            <div style="display:flex; align-items:center;">
+                <button id="btnFijarTasas" class="btn-fijar"><i class='bx bx-save'></i> Fijar Tasas</button>
+            </div>
+        </div>
+        
+    </div>
+    <div class="welcome-banner">
+        <div>
+            <h2 id="adminNombre">Panel de Control Financiero</h2>
+            <p>Auditoría general del sistema.</p>
+        </div>
+    </div>
+    <div class="toolbar">
+        <div class="search-box"><i class='bx bx-search'></i><input type="text" id="buscador" class="search-input" onkeyup="filtrarTablas()" placeholder="🔍 Buscar..."></div>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn-print" onclick="window.print()"><i class='bx bx-printer'></i> Imprimir PDF</button>
+            <button id="btnRegistrarPagoManual" class="btn-print" style="background: linear-gradient(90deg,#10b981,#059669);"><i class='bx bx-plus'></i> ➕ Registrar Pago Manual</button>
+        </div>
+    </div>
+    <div class="section-title">Control de Representantes</div>
+    <div class="table-container"><table><thead><tr><th>Representante</th><th>Cédula</th><th>Correo</th><th>Rol</th><th>Estatus</th><th>Alumnos</th><th>Acción</th></tr></thead><tbody id="tablaUsuariosBody"></tbody></table></div>
+    <div class="section-title">Pagos Reportados</div>
+    <div class="table-container"><table><thead><tr><th>Representante</th><th>Mes</th><th>Monto</th><th>Referencia</th><th>Ruta Bancaria</th><th>Comprobante</th><th>Estatus</th><th>Acciones</th></tr></thead><tbody id="tablaPagosBody"></tbody></table></div>
+</div>
+<script>
+    // 1. CONTROL DE REBOOT Y CERRAR SESIÓN TOTALMENTE SEGURO
+    function logout() { 
+        localStorage.clear(); 
+        window.location.href = 'login.html'; 
+    }
+
+    // Capturamos el usuario protegiendo el código contra textos corruptos
+    let user = null;
+    try {
+        user = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    } catch(e) {
+        console.error("Error leyendo la sesión:", e);
+    }
+    
+    // 🔒 Candado blindado de rol estricto
+    if (!user || user.rol !== 'admin') {
+        window.location.href = 'login.html';
+    } else {
+        const nombreAdmin = user.nombre || "Administrador";
+        document.getElementById('adminNombre').innerText = `¡Bienvenido, ${nombreAdmin}! 👋`;
+    }
+
+    function filtrarTablas() {
+        let f = document.getElementById('buscador').value.toLowerCase();
+        document.querySelectorAll('tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(f) ? '' : 'none');
+    }
+
+    async function cargarUsuarios() {
+        try {
+            const r = await fetch('/api/admin/usuarios'); 
+            if (!r.ok) return;
+            const res = await r.json();
+            const tbody = document.getElementById('tablaUsuariosBody'); tbody.innerHTML = '';
+            
+            if(!res.usuarios) return;
+            // Exponer la lista de usuarios para otros módulos (ej. modal de registro manual)
+            window.adminUsuarios = res.usuarios || [];
+            res.usuarios.forEach(u => {
+                let hijos = ''; 
+                u.alumnos?.forEach(a => {
+                    // Determinar si el nivel es Grado (Primaria) o Año (Técnica)
+                    const isGrado = /Grado/i.test(a.nivel);
+                    let info = '';
+                    if (isGrado) {
+                        const seccion = a.mencion && a.mencion !== 'Ninguna' ? ` (Sección ${a.mencion})` : '';
+                        info = `${a.nivel}${seccion}`;
+                    } else {
+                        const menc = a.mencion && a.mencion !== 'Ninguna' ? ` (${a.mencion})` : '';
+                        info = `${a.nivel}${menc}`;
+                    }
+                    const cedText = a.cedula ? ` | C.I: ${a.cedula}` : '';
+                    hijos += `<li>${a.nombre_completo || a.nombre} - <small>${info}${cedText}</small></li>`;
+                });
+
+                const badgeClass = u.estatus === 'pendiente' ? 'badge-pending' : 'badge-active';
+                const boton = u.estatus === 'pendiente' 
+                    ? `<button class="btn-view" style="background:var(--primary); color:white; border:none; cursor:pointer; padding:5px 12px;" onclick="aprobarUsuario(${u.id})">Aprobar</button>` 
+                    : `<span style="color:#cbd5e1; font-size: 12px; font-weight:600;">Activo</span>`;
+
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td class="no-wrap"><b>${u.nombre_completo}</b></td>
+                        <td>${u.cedula}</td>
+                        <td>${u.correo}</td>
+                        <td><span class="badge ${u.rol==='admin'?'badge-admin':''}">${u.rol}</span></td>
+                        <td><span class="badge ${badgeClass}">${u.estatus}</span></td>
+                        <td><ul class="hijos-list">${hijos}</ul></td>
+                        <td class="no-wrap">${boton}</td>
+                    </tr>
+                `);
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function cargarPagos() {
+        try {
+            const r = await fetch('/api/admin/pagos'); 
+            if (!r.ok) return;
+            const res = await r.json();
+            const tbody = document.getElementById('tablaPagosBody'); tbody.innerHTML = '';
+            
+            if(!res.pagos) return;
+            res.pagos.forEach(p => {
+                const mon = p.moneda === 'BS' ? 'Bs' : (p.moneda === 'PESOS' || p.moneda === 'COP' ? 'COL$' : '$');
+                let badgeClass = 'badge-pending';
+                if (p.estatus_pago === 'aprobado') badgeClass = 'badge-active';
+                if (p.estatus_pago === 'rechazado') badgeClass = 'badge-danger';
+
+                const acciones = p.estatus_pago === 'pendiente'
+                    ? `<button class="btn-action btn-approve" title="Aprobar" onclick="aprobarPago(${p.id})"><i class='bx bx-check'></i></button><button class="btn-action btn-reject" title="Rechazar" onclick="rechazarPago(${p.id})"><i class='bx bx-x'></i></button>`
+                    : `<span style="color:#94a3b8; font-size:13px;">Procesado</span>`;
+
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td><b>${p.representante_nombre}</b></td>
+                        <td>${p.mes_pagado}</td>
+                        <td>${mon} ${p.monto}</td>
+                        <td><code>${p.referencia}</code></td>
+                        <td>${p.banco_origen} ➔ ${p.banco_destino}</td>
+                        <td><a href="/uploads/${p.comprobante}" target="_blank" class="btn-view">Ver</a></td>
+                        <td><span class="badge ${badgeClass}">${p.estatus_pago}</span></td>
+                        <td class="no-wrap">${acciones}</td>
+                    </tr>
+                `);
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    function aprobarUsuario(id) {
+        Swal.fire({
+            title: '¿Aprobar Representante?',
+            text: "Se habilitará su acceso al portal institucional.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, Aprobar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const r = await fetch(`/api/admin/usuarios/${id}/estatus`, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ estatus: 'activo' }) 
+                });
+                if (r.ok) { 
+                    Swal.fire('¡Activado!', 'Usuario aprobado con éxito.', 'success'); 
+                    cargarUsuarios(); 
+                }
+            }
+        });
+    }
+    
+    // Aprobar pago
+    async function aprobarPago(id) {
+        const { value: confirm } = await Swal.fire({
+            title: '¿Aprobar pago?',
+            text: 'Marcar el pago como aprobado.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, aprobar'
+        });
+        if (confirm) {
+            try {
+                const r = await fetch(`/api/admin/pagos/${id}/estatus`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estatus_pago: 'aprobado' }) });
+                if (r.ok) { Swal.fire('Aprobado', 'Pago marcado como aprobado.', 'success'); cargarPagos(); }
+                else { Swal.fire('Error', 'No se pudo aprobar el pago.', 'error'); }
+            } catch (err) { console.error(err); Swal.fire('Error', 'Fallo la petición.', 'error'); }
+        }
+    }
+
+    // Rechazar pago con motivo (mensaje enviado al representante)
+    async function rechazarPago(id) {
+        const { value: motivo } = await Swal.fire({
+            title: 'Motivo del rechazo',
+            input: 'textarea',
+            inputLabel: 'Escribe la razón por la cual se rechaza el pago (visible al representante)',
+            inputPlaceholder: 'Motivo del rechazo...',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Rechazar'
+        });
+        if (motivo !== undefined) {
+            try {
+                const r = await fetch(`/api/admin/pagos/${id}/estatus`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estatus_pago: 'rechazado', mensaje_rechazo: motivo }) });
+                if (r.ok) { Swal.fire('Rechazado', 'Pago marcado como rechazado.', 'success'); cargarPagos(); }
+                else { Swal.fire('Error', 'No se pudo rechazar el pago.', 'error'); }
+            } catch (err) { console.error(err); Swal.fire('Error', 'Fallo la petición.', 'error'); }
+        }
+    }
+    
+    // Solo se ejecutan las cargas de datos si la sesión es completamente válida
+    if (user && user.rol === 'admin') {
+        cargarUsuarios(); 
+        cargarPagos();
+    }
+
+    // Cargar valor actual de la mensualidad y manejar actualización
+    async function cargarPrecioMensualidad() {
+        try {
+            const r = await fetch('/api/config');
+            if (!r.ok) return;
+            const res = await r.json();
+            if (res.precio) {
+                document.getElementById('precioMensualidadInput').value = res.precio;
+                window.precioMensualidad = res.precio ? parseFloat(res.precio) : null;
+            }
+            if (res.tasa_bs) {
+                window.tasaBs = res.tasa_bs ? parseFloat(String(res.tasa_bs).replace(',','.')) : null;
+                try {
+                    const n = parseFloat(String(res.tasa_bs).replace(',','.'));
+                    document.getElementById('tasaBsInput').value = isNaN(n) ? res.tasa_bs : n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } catch(e) { document.getElementById('tasaBsInput').value = res.tasa_bs; }
+            }
+            if (res.tasa_pesos) {
+                document.getElementById('tasaPesosInput').value = res.tasa_pesos;
+                window.tasaPesos = res.tasa_pesos ? parseFloat(String(res.tasa_pesos).replace(',','.')) : null;
+            }
+        } catch (e) { console.error('No se pudo cargar precio', e); }
+    }
+
+    document.getElementById('btnFijarTasas').addEventListener('click', async () => {
+        const nuevo = document.getElementById('precioMensualidadInput').value;
+        let tasaBs = document.getElementById('tasaBsInput').value;
+        let tasaPesos = document.getElementById('tasaPesosInput').value;
+
+        // Normalizar entradas: permitir formato con coma para decimales (ej. 544,57)
+        const normalize = s => String(s || '').replace(/\./g,'').replace(/,/g,'.').trim();
+        const tasaBsNorm = normalize(tasaBs);
+        const tasaPesosNorm = normalize(tasaPesos);
+
+        if (!nuevo || isNaN(Number(nuevo))) return Swal.fire('Error', 'Ingrese un precio USD válido', 'error');
+        if (!tasaBs || isNaN(Number(tasaBsNorm))) return Swal.fire('Error', 'Ingrese una tasa Bs válida', 'error');
+        if (!tasaPesos || isNaN(Number(tasaPesosNorm))) return Swal.fire('Error', 'Ingrese una tasa Pesos válida', 'error');
+
+        const payload = { precio: String(nuevo), tasa_bs: String(tasaBsNorm), tasa_pesos: String(tasaPesosNorm) };
+
+        try {
+            const r = await fetch('/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': 'mi_clave_admin_123' }, body: JSON.stringify(payload) });
+            const resBody = await r.json().catch(()=>null);
+            if (r.ok) {
+                Swal.fire('Listo', 'Tasas actualizadas', 'success');
+                // volver a mostrar la tasa bs con formato local
+                try {
+                    const n = parseFloat(String(payload.tasa_bs).replace(',','.'));
+                    if (!isNaN(n)) document.getElementById('tasaBsInput').value = n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } catch(e){}
+            } else {
+                Swal.fire('Error', (resBody&&resBody.mensaje) || `Fallo (${r.status})`, 'error');
+            }
+        } catch (e) { console.error('Request failed', e); Swal.fire('Error', 'Fallo al actualizar', 'error'); }
+    });
+
+    // Llamadas iniciales
+    if (user && user.rol === 'admin') {
+        cargarPrecioMensualidad();
+    }
+
+    // Funciones para el modal de Registro de Pago Manual (Taquilla)
+    function renderMesesModal(precio, containerId = 'modal-meses') {
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        meses.forEach(m => {
+            const id = `modal_mes_${m}`;
+            const wrapper = document.createElement('label');
+            wrapper.style.display = 'inline-flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.gap = '6px';
+            wrapper.style.padding = '6px 8px';
+            wrapper.style.borderRadius = '6px';
+            wrapper.style.background = '#ffffff';
+            wrapper.style.border = '1px solid #e6eef8';
+            wrapper.style.cursor = 'pointer';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox'; cb.value = m; cb.id = id; cb.style.cursor = 'pointer';
+            cb.addEventListener('change', updateTotalModal);
+            const span = document.createElement('span'); span.innerText = m; span.style.fontSize = '13px'; span.style.color = '#102a43';
+            wrapper.appendChild(cb); wrapper.appendChild(span);
+            container.appendChild(wrapper);
+        });
+        const precioEl = document.getElementById('modal-precioPorMes');
+        precioEl && (precioEl.innerText = `Precio por mes: ${precio ? '$' + parseFloat(precio).toFixed(2) : 'N/D'}`);
+        updateTotalModal();
+    }
+
+    function updateTotalModal() {
+        const checks = Array.from(document.querySelectorAll('#modal-meses input[type=checkbox]'));
+        const selected = checks.filter(c => c.checked).map(c => c.value);
+        const precio = window.precioMensualidad ? parseFloat(window.precioMensualidad) : 0;
+        const totalUsd = (selected.length * precio);
+        const moneda = document.getElementById('modal-moneda') ? document.getElementById('modal-moneda').value : 'USD';
+        let converted = totalUsd;
+        let displayText = '';
+        if (moneda === 'BS') {
+            const tasa = window.tasaBs || 1;
+            converted = totalUsd * tasa;
+            displayText = `Equivale a Bs ${converted.toFixed(2)} (Tasa: ${tasa})`;
+        } else if (moneda === 'PESOS') {
+            const tasa = window.tasaPesos || 1;
+            converted = totalUsd * tasa;
+            displayText = `Equivale a COL$ ${converted.toFixed(2)} (Tasa: ${tasa})`;
+        } else {
+            displayText = `Total en USD: $ ${totalUsd.toFixed(2)}`;
+        }
+        const montoInput = document.getElementById('modal-monto');
+        if (montoInput) montoInput.value = converted ? converted.toFixed(2) : '';
+        const infoEl = document.getElementById('modal-precioPorMes');
+        if (infoEl) infoEl.innerText = displayText;
+        const totalEl = document.getElementById('modal-total'); if (totalEl) totalEl.innerText = displayText;
+    }
+
+    // Populate bancos dentro del modal (origen y destino)
+    function populateModalBancos(moneda) {
+        const selO = document.getElementById('modal-banco-origen');
+        const selD = document.getElementById('modal-banco-destino');
+        if (!selO || !selD) return;
+        selO.innerHTML = '';
+        selD.innerHTML = '';
+        const add = (sel, txt, val) => { const o = document.createElement('option'); o.value = val || txt; o.innerText = txt; sel.appendChild(o); };
+        add(selO, '-- Seleccione --', ''); add(selD, '-- Seleccione --', '');
+        if (moneda === 'USD') {
+            add(selO, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+            add(selO, 'Zelle (Institucional)', 'Zelle (Institucional)'); add(selD, 'Zelle (Institucional)', 'Zelle (Institucional)');
+            add(selO, 'Banesco Panamá (Mony)', 'Banesco Panamá (Mony)'); add(selD, 'Banesco Panamá (Mony)', 'Banesco Panamá (Mony)');
+            add(selO, 'Mercantil Panamá', 'Mercantil Panamá'); add(selD, 'Mercantil Panamá', 'Mercantil Panamá');
+            add(selO, 'Facebank (Pipol Pay)', 'Facebank (Pipol Pay)'); add(selD, 'Facebank (Pipol Pay)', 'Facebank (Pipol Pay)');
+        } else if (moneda === 'BS') {
+            add(selO, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+            add(selO, 'Banco de Venezuela (BDV)', 'Banco de Venezuela (BDV)'); add(selD, 'Banco de Venezuela (BDV)', 'Banco de Venezuela (BDV)');
+            add(selO, 'Banesco', 'Banesco'); add(selD, 'Banesco', 'Banesco');
+            add(selO, 'Banco Mercantil', 'Banco Mercantil'); add(selD, 'Banco Mercantil', 'Banco Mercantil');
+            add(selO, 'Pago Móvil Interbancario', 'Pago Móvil Interbancario'); add(selD, 'Pago Móvil Interbancario', 'Pago Móvil Interbancario');
+        } else if (moneda === 'PESOS') {
+            add(selO, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+            add(selO, 'Bancolombia', 'Bancolombia'); add(selD, 'Bancolombia', 'Bancolombia');
+            add(selO, 'Nequi', 'Nequi'); add(selD, 'Nequi', 'Nequi');
+            add(selO, 'Daviplata (Davivienda)', 'Daviplata (Davivienda)'); add(selD, 'Daviplata (Davivienda)', 'Daviplata (Davivienda)');
+        } else {
+            add(selO, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+        }
+    }
+
+    async function openRegistrarPagoModal() {
+        // Ensure we have users loaded
+        if (!window.adminUsuarios || !Array.isArray(window.adminUsuarios)) {
+            try {
+                const r = await fetch('/api/admin/usuarios');
+                if (r.ok) { const res = await r.json(); window.adminUsuarios = res.usuarios || []; }
+            } catch (e) { console.error('No se pudo cargar la lista de usuarios', e); }
+        }
+
+        const { value: formValues } = await Swal.fire({
+            title: 'Registrar Pago Manual (Taquilla)',
+              html: `<div style="display:flex; flex-direction:column; gap:8px; text-align:left;">
+                        <label>Representante</label>
+                        <select id="modal-representante" class="swal2-input" style="height:36px; text-align:left;"></select>
+                        <label>Meses</label>
+                        <div id="modal-meses" style="min-height:44px; padding:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:#fff; border:1px solid #e6eef8; border-radius:6px;"></div>
+                        <small id="modal-precioPorMes" style="color:var(--text-muted); display:block; margin-top:6px;">Precio por mes: --</small>
+                        <label>Moneda</label>
+                        <select id="modal-moneda" class="swal2-input" style="height:36px;"><option value="USD">USD ($)</option><option value="BS">Bs (Bs)</option><option value="PESOS">PESOS (COL$)</option></select>
+                        <label>Banco Origen</label>
+                        <select id="modal-banco-origen" class="swal2-input" style="height:36px;"><option value="">-- Seleccione --</option></select>
+                        <label>Banco Destino</label>
+                        <select id="modal-banco-destino" class="swal2-input" style="height:36px;"><option value="">-- Seleccione --</option></select>
+                        <label>Referencia / Nota</label>
+                        <input id="modal-referencia" class="swal2-input" placeholder="Ej: Efectivo - Ticket 123">
+                        <label>Monto calculado</label>
+                        <input id="modal-monto" class="swal2-input" readonly>
+                        <div id="modal-total" style="color:#102a43; font-weight:700;"></div>
+                    </div>`,
+            showCancelButton: true,
+            focusConfirm: false,
+            preConfirm: () => {
+                const rep = document.getElementById('modal-representante') ? document.getElementById('modal-representante').value : '';
+                const checks = Array.from(document.querySelectorAll('#modal-meses input[type=checkbox]'));
+                const selectedMonths = checks.filter(c => c.checked).map(c => c.value);
+                const referencia = document.getElementById('modal-referencia') ? document.getElementById('modal-referencia').value : '';
+                const moneda = document.getElementById('modal-moneda') ? document.getElementById('modal-moneda').value : 'USD';
+                const monto = document.getElementById('modal-monto') ? document.getElementById('modal-monto').value : '';
+                const bancoOrigen = document.getElementById('modal-banco-origen') ? document.getElementById('modal-banco-origen').value : '';
+                const bancoDestino = document.getElementById('modal-banco-destino') ? document.getElementById('modal-banco-destino').value : '';
+                if (!rep) Swal.showValidationMessage('Seleccione un representante');
+                if (!selectedMonths || selectedMonths.length === 0) Swal.showValidationMessage('Seleccione al menos un mes');
+                if (!monto || Number(monto) <= 0) Swal.showValidationMessage('Monto inválido');
+                if (!bancoOrigen) Swal.showValidationMessage('Seleccione banco origen');
+                return { representante_id: rep, mes_pagado: JSON.stringify(selectedMonths), monto, moneda, referencia, banco_origen: bancoOrigen, banco_destino: bancoDestino };
+            },
+            didOpen: () => {
+                // Populate representantes
+                const sel = document.getElementById('modal-representante');
+                sel.innerHTML = '<option value="">-- Seleccione --</option>';
+                (window.adminUsuarios || []).forEach(u => {
+                    const name = u.nombre_completo || u.nombre || `ID ${u.id}`;
+                    const opt = document.createElement('option'); opt.value = u.id; opt.innerText = name; sel.appendChild(opt);
+                });
+                // Render meses and wire events
+                renderMesesModal(window.precioMensualidad || 0, 'modal-meses');
+                const monedaEl = document.getElementById('modal-moneda'); if (monedaEl) {
+                    monedaEl.addEventListener('change', () => { updateTotalModal(); populateModalBancos(monedaEl.value); });
+                    // populate initial bancos
+                    populateModalBancos(monedaEl.value);
+                }
+            }
+        });
+
+        if (!formValues) return;
+
+        // Enviar al servidor como pago aprobado y comprobante por defecto
+        try {
+            const payload = Object.assign({}, formValues, { comprobante: 'efectivo_taquilla.png' });
+            const r = await fetch('/api/pagos/reportar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const body = await r.json().catch(()=>null);
+            if (r.ok) {
+                Swal.fire('Registrado', 'Pago ingresado correctamente y marcado como aprobado.', 'success');
+                cargarPagos();
+            } else {
+                Swal.fire('Error', (body && body.mensaje) ? body.mensaje : 'No se pudo registrar el pago', 'error');
+            }
+        } catch (e) {
+            console.error('Error reportando pago manual', e);
+            Swal.fire('Error', 'Fallo en la conexión al registrar el pago', 'error');
+        }
+    }
+
+    // Abrir modal al hacer click en el botón
+    document.getElementById('btnRegistrarPagoManual').addEventListener('click', openRegistrarPagoModal);
+
+    // Formato amigable: al enfocar la tasa Bs quitamos formateo para editar, y al perder foco lo mostramos con coma decimal
+    const tasaBsEl = document.getElementById('tasaBsInput');
+    if (tasaBsEl) {
+        tasaBsEl.addEventListener('focus', () => {
+            tasaBsEl.value = String(tasaBsEl.value || '').replace(/,/g, '.').replace(/\s/g,'');
+        });
+        tasaBsEl.addEventListener('blur', () => {
+            const v = String(tasaBsEl.value || '').replace(/\./g,'').replace(/,/g,'.').trim();
+            const n = parseFloat(v);
+            if (!isNaN(n)) tasaBsEl.value = n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        });
+    }
+
+    
+
+    // Botón en navbar para abrir gestión rápida de claves o cambiar propia contraseña
+    document.getElementById('btnUserMenu').addEventListener('click', () => {
+        Swal.fire({
+            title: 'Cuenta',
+            html: `<div style="display:flex; flex-direction:column; gap:8px;"><button id="swal-change-pass" class="swal2-confirm swal2-styled">Cambiar contraseña</button></div>`,
+            showConfirmButton: false,
+            didOpen: () => {
+                document.getElementById('swal-change-pass').addEventListener('click', () => { Swal.close(); cambiarMiClaveModal(); });
+            }
+        });
+    });
+
+    async function cambiarMiClaveModal() {
+        const { value: formValues } = await Swal.fire({
+            title: 'Cambiar mi contraseña',
+            html: `<input id="swal-current" type="password" class="swal2-input" placeholder="Contraseña actual"><input id="swal-new" type="password" class="swal2-input" placeholder="Nueva contraseña"><input id="swal-confirm" type="password" class="swal2-input" placeholder="Confirmar nueva contraseña">`,
+            focusConfirm: false,
+            showCancelButton: true,
+            preConfirm: () => {
+                const current = document.getElementById('swal-current').value;
+                const neu = document.getElementById('swal-new').value;
+                const conf = document.getElementById('swal-confirm').value;
+                if (!current || !neu || !conf) Swal.showValidationMessage('Complete todos los campos');
+                if (neu !== conf) Swal.showValidationMessage('Las contraseñas no coinciden');
+                if (neu.length < 6) Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
+                return { current, neu };
+            }
+        });
+        if (!formValues) return;
+        const current = formValues.current;
+        const neu = formValues.neu;
+        try {
+            const usuario = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
+            if (!usuario || !usuario.id) return Swal.fire('Error', 'Usuario no identificado', 'error');
+            const r = await fetch(`/api/usuarios/${usuario.id}/password`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current_password: current, new_password: neu }) });
+            const body = await r.json();
+            if (r.ok) {
+                Swal.fire('Listo', body.mensaje || 'Contraseña actualizada', 'success');
+            } else {
+                Swal.fire('Error', body.mensaje || 'No se pudo cambiar la contraseña', 'error');
+            }
+        } catch (e) { console.error(e); Swal.fire('Error', 'Fallo la petición', 'error'); }
+    }
+
+    // La gestión de la clave de precio se elimina del cliente: solo el administrador puede fijar tasas desde este panel sin ingresar una clave adicional.
+</script>
+</body>
+</html>

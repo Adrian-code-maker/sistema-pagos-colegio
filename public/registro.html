@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Institucional | 12 de Febrero</title>
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1e3a8a; --bg: #0f172a; --text: #334155; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: #f1f5f9; min-height: 100vh; display: flex; }
+
+        /* Diseño de pantalla dividida elegante */
+        .sidebar { background: linear-gradient(185deg, var(--bg) 0%, var(--primary) 100%); width: 35%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; position: fixed; height: 100vh; left: 0; top: 0; }
+        .sidebar img { height: 90px; background: white; border-radius: 50%; padding: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .sidebar h2 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
+        .sidebar p { font-size: 14px; opacity: 0.8; line-height: 1.6; max-width: 280px; }
+
+        .form-container { width: 65%; margin-left: 35%; padding: 50px 60px; display: flex; justify-content: center; align-items: center; }
+        .register-card { background: white; width: 100%; max-width: 650px; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        
+        h3 { font-size: 20px; color: var(--bg); font-weight: 700; margin-bottom: 25px; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-size: 13px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin: 25px 0 15px 0; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-group { text-align: left; }
+        label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 12px; color: #94a3b8; font-size: 18px; }
+        
+        .form-control { width: 100%; padding: 10px 12px 10px 38px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; transition: 0.3s; background: #f8fafc; color: var(--text); outline: none; }
+        .form-control:focus { border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
+        
+        select.form-control { padding-left: 12px; cursor: pointer; }
+
+        /* Estilos específicos de la fila del alumno */
+        .alumno-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+
+        .btn-add { background: none; border: none; color: #2563eb; font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 12px; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .btn-add:hover { color: var(--primary); }
+
+        .btn-submit { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 30px; transition: 0.3s; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15); }
+        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(30, 58, 138, 0.25); }
+
+        .footer-link { margin-top: 20px; font-size: 13px; color: #64748b; text-align: center; }
+        .footer-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <img src="logo.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2941/2941582.png'">
+        <h2>Portal de Registro</h2>
+        <p>Únete a nuestra comunidad digital y gestiona los pagos de tus representados de forma rápida y segura.</p>
+    </div>
+
+    <div class="form-container">
+        <div class="register-card">
+            <h3><i class='bx bx-user-plus'></i> Crear Nueva Cuenta</h3>
+            
+            <form id="registroForm">
+                <div class="section-title"><i class='bx bxs-user-detail'></i> Datos del Representante</div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-user'></i>
+                            <input type="text" id="nombre" class="form-control" required placeholder="Ej: Carlos Pérez">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Cédula de Identidad</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-id-card'></i>
+                            <input type="text" id="cedula" class="form-control" required placeholder="Ej: V-12345678">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-envelope'></i>
+                            <input type="email" id="correo" class="form-control" required placeholder="carlos@correo.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña para el Portal</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-lock-alt'></i>
+                            <input type="password" id="contrasena" class="form-control" required placeholder="••••••••">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title"><i class='bx bxs-graduation'></i> Registro de Alumnos</div>
+                
+                <div id="contenedorAlumnos">
+                    <div class="alumno-item" style="margin-bottom: 15px;">
+                        <div class="alumno-grid">
+                            <div class="form-group">
+                                <label>Nombre del Alumno</label>
+                                <div class="input-wrapper">
+                                    <i class='bx bx-user-voice'></i>
+                                    <input type="text" class="form-control nomAlu" required placeholder="Nombre completo del estudiante">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Cédula Escolar / Identidad</label>
+                                <div class="input-wrapper">
+                                    <i class='bx bx-id-card'></i>
+                                    <input type="text" class="form-control cedAlu" placeholder="Ej: V-12345678">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Año/Nivel</label>
+                                <select class="form-control nivAlu">
+                                        <option>1er Grado</option><option>2do Grado</option><option>3er Grado</option>
+                                        <option>4to Grado</option><option>5to Grado</option><option>6to Grado</option>
+                                        <option>1er Año</option><option>2do Año</option><option>3er Año</option>
+                                        <option>4to Año</option><option>5to Año</option><option>6to Año</option>
+                                </select>
+                            </div>
+                                <div class="form-group">
+                                    <label>Sección</label>
+                                    <select class="form-control secAlu">
+                                        <option>A</option>
+                                        <option>B</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display:none;">
+                                    <label>Mención</label>
+                                    <select class="form-control menAlu" style="display:none;">
+                                        <option>Telemática</option>
+                                        <option>Laboratorio Clínico</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display:none;" >
+                                    <label>Mención</label>
+                                    <select class="form-control menAlu" style="display:none;">
+                                        <option>Telemática</option>
+                                        <option>Laboratorio Clínico</option>
+                                    </select>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-add" onclick="agregarAlumno()">
+                    <i class='bx bx-plus-circle'></i> + Agregar otro hijo
+                </button>
+
+                <button type="submit" class="btn-submit" id="btnSubmit">Registrar mi Cuenta</button>
+            </form>
+
+            <div class="footer-link">¿Ya tienes una cuenta? <a href="login.html">Inicia sesión aquí</a></div>
+        </div>
+    </div>
+
+    <script>
+        // Función para inyectar un nuevo alumno idéntico al presionar el botón +
+        function agregarAlumno() { 
+            const html = `
+            <div class="alumno-item" style="margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-bottom: 15px;">
+                <div class="alumno-grid">
+                    <div class="form-group">
+                        <label>Nombre del Alumno</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-user-voice'></i>
+                            <input type="text" class="form-control nomAlu" required placeholder="Nombre completo del estudiante">
+                        </div>
+                    </div>
+                            <div class="form-group">
+                                <label>Cédula Escolar / Identidad</label>
+                                <div class="input-wrapper">
+                                    <i class='bx bx-id-card'></i>
+                                    <input type="text" class="form-control cedAlu" placeholder="Ej: V-12345678">
+                                </div>
+                            </div>
+                    <div class="form-group">
+                        <label>Año/Nivel</label>
+                        <select class="form-control nivAlu">
+                            <option>1er Grado</option><option>2do Grado</option><option>3er Grado</option>
+                            <option>4to Grado</option><option>5to Grado</option><option>6to Grado</option>
+                            <option>1er Año</option><option>2do Año</option><option>3er Año</option>
+                            <option>4to Año</option><option>5to Año</option><option>6to Año</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sección</label>
+                        <select class="form-control secAlu">
+                            <option>A</option>
+                            <option>B</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display:none;" id="menPlaceholder">
+                        <label>Mención</label>
+                        <select class="form-control menAlu" style="display:none;">
+                            <option>Telemática</option>
+                            <option>Laboratorio Clínico</option>
+                        </select>
+                    </div>
+                            <div class="form-group" style="display:none;">
+                                <label>Mención</label>
+                                <select class="form-control menAlu" style="display:none;">
+                                    <option>Telemática</option>
+                                    <option>Laboratorio Clínico</option>
+                                </select>
+                            </div>
+                </div>
+            </div>`; 
+            document.getElementById('contenedorAlumnos').insertAdjacentHTML('beforeend', html); 
+            // initialize behavior for the newly added row
+            const container = document.getElementById('contenedorAlumnos');
+            const newRow = container.lastElementChild;
+            setupAlumnoRow(newRow);
+        }
+
+        // Envío asíncrono seguro al backend
+        document.getElementById('registroForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Procesando Registro...";
+            btnSubmit.disabled = true;
+
+            const alumnos = [];
+            
+            // Captura los datos en vivo de cada una de las filas de alumnos creadas
+            document.querySelectorAll('.alumno-item').forEach(item => { 
+                const nivelVal = item.querySelector('.nivAlu').value;
+                const isGrado = /Grado/i.test(nivelVal);
+                const seccionVal = item.querySelector('.secAlu') ? item.querySelector('.secAlu').value : '';
+                const mencionVal = item.querySelector('.menAlu') ? item.querySelector('.menAlu').value : '';
+                const cedulaVal = item.querySelector('.cedAlu') ? item.querySelector('.cedAlu').value : '';
+                alumnos.push({ 
+                    nombre_completo: item.querySelector('.nomAlu').value, 
+                    cedula_alumno: cedulaVal,
+                    nivel: nivelVal, 
+                    seccion: isGrado ? (seccionVal || 'Ninguna') : 'Ninguna',
+                    mencion: !isGrado ? (mencionVal || 'Ninguna') : 'Ninguna'
+                }); 
+            });
+
+            const data = { 
+                nombre_completo: document.getElementById('nombre').value, 
+                cedula: document.getElementById('cedula').value, 
+                correo: document.getElementById('correo').value, 
+                contrasena: document.getElementById('contrasena').value, 
+                alumnos 
+            };
+            
+            try {
+                const r = await fetch('/api/registro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const res = await r.json();
+                
+                if (r.ok) { 
+                    alert('✅ Registro exitoso. Espere activación del administrador.'); 
+                    window.location.href = 'login.html'; 
+                } else { 
+                    btnSubmit.innerHTML = "Registrar mi Cuenta";
+                    btnSubmit.disabled = false;
+                    alert('❌ ' + res.mensaje); 
+                }
+            } catch (e) { 
+                btnSubmit.innerHTML = "Registrar mi Cuenta";
+                btnSubmit.disabled = false;
+                alert('❌ Error conectando con el servidor.'); 
+            }
+        });
+
+        // Setup behavior for grado vs año toggle
+        function setupAlumnoRow(row) {
+            if (!row) return;
+            const niv = row.querySelector('.nivAlu');
+            const sec = row.querySelector('.secAlu');
+            const secWrapper = sec ? sec.closest('.form-group') : null;
+            const men = row.querySelector('.menAlu');
+            const menWrapper = men ? men.closest('.form-group') : null;
+            const updateVisibility = () => {
+                const val = niv.value || '';
+                const isGrado = /Grado/i.test(val);
+                if (secWrapper) secWrapper.style.display = isGrado ? '' : 'none';
+                if (sec) sec.style.display = isGrado ? '' : 'none';
+                if (menWrapper) menWrapper.style.display = isGrado ? 'none' : '';
+                if (men) men.style.display = isGrado ? 'none' : '';
+            };
+            // initial
+            updateVisibility();
+            // events
+            if (niv) niv.addEventListener('change', updateVisibility);
+        }
+
+        // Initialize existing rows
+        document.querySelectorAll('.alumno-item').forEach(r => setupAlumnoRow(r));
+    </script>
+</body>
+</html>

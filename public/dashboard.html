@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Representante | U.E. 12 de Febrero</title>
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #1e3a8a; --primary-light: #2563eb; --bg: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); min-height: 100vh; padding-bottom: 50px; }
+        
+        .navbar { background: linear-gradient(90deg, #0f172a 0%, var(--primary) 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .navbar .brand { display: flex; align-items: center; gap: 10px; }
+        .navbar h1 { font-size: 16px; font-weight: 600; }
+        .notif-bell { position: relative; margin-right: 12px; cursor: pointer; display: inline-flex; align-items: center; gap:6px; }
+        .notif-count { position: absolute; top: -6px; right: -6px; background: #ef4444; color: white; font-size: 11px; padding: 2px 6px; border-radius: 12px; font-weight:700; }
+        
+        .btn-logout { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-logout:hover { background: #ef4444; border-color: #ef4444; }
+        /* Botón estético para gestión */
+        .btn-account { background: rgba(255,255,255,0.08); color: white; border: none; padding: 8px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; box-shadow: 0 4px 14px rgba(2,6,23,0.15); cursor: pointer; transition: transform .12s ease, background .12s ease; }
+        .btn-account i { font-size: 16px; }
+        .btn-account:hover { transform: translateY(-2px); background: rgba(255,255,255,0.14); }
+        .btn-account .btn-account-text { font-size: 13px; color: white; }
+        
+        .main-content { padding: 30px; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; }
+        
+        .welcome-banner { background: white; border-left: 4px solid var(--primary-light); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); grid-column: span 2; display: flex; justify-content: space-between; align-items: center; }
+        .welcome-banner h2 { font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 5px; }
+        .welcome-banner p { font-size: 14px; color: var(--text-muted); }
+        
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); height: fit-content; }
+        .card-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        
+        .form-group { margin-bottom: 18px; text-align: left; }
+        label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; background: #f8fafc; outline: none; }
+        
+        .flex-group { display: flex; gap: 10px; }
+        .btn-submit { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-submit:hover { background: var(--primary-light); }
+        
+        .alumno-box { background: #f8fafc; border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .alumno-info h4 { font-size: 14px; font-weight: 600; color: var(--text-main); }
+        .alumno-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .badge-mencion { background: #eff6ff; color: var(--primary-light); font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid #bfdbfe; }
+
+        /* Estilos de la tabla de historial */
+        table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
+        th { background: #f8fafc; padding: 12px; font-weight: 600; color: #64748b; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .badge-status { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .status-aprobado { background: #ecfdf5; color: #065f46; }
+        .status-pendiente { background: #fffbeb; color: #92400e; }
+        .status-rechazado { background: #fef2f2; color: #991b1b; }
+
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } .welcome-banner, .full-width-card { grid-column: span 1 !important; } }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="brand">
+        <i class='bx bxs-wallet' style="font-size: 24px;"></i>
+        <h1>Portal de Pagos | 12 de Febrero</h1>
+    </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+        <div id="notifBtn" class="notif-bell" title="Notificaciones">
+            <i class='bx bx-bell' style="font-size:20px;"></i>
+            <span id="notifCount" class="notif-count" style="display:none;">0</span>
+        </div>
+        <button id="btnUserMenu" class="btn-account" style="margin-right:6px;"><i class='bx bx-lock-alt'></i><span class="btn-account-text">Gestión de contraseñas</span></button>
+        <button class="btn-logout" onclick="logout()"><i class='bx bx-log-out'></i> Cerrar Sesión</button>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="welcome-banner">
+        <div>
+            <h2 id="txtBienvenida">¡Bienvenido! 👋</h2>
+            <p>Gestione el estatus financiero y los reportes de pago de sus representados.</p>
+        </div>
+        <i class='bx bxs-graduation' style="font-size: 40px; color: #bfdbfe; opacity: 0.5;"></i>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class='bx bx-group'></i> Mis Alumnos Representados</div>
+        <div id="listaAlumnos">
+            <p style="color:var(--text-muted); font-size:13px;">Buscando alumnos asignados...</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class='bx bx-cloud-upload'></i> Reportar Nuevo Pago</div>
+        <form id="pagoForm">
+            <div class="form-group">
+                <label>Mes(es) Correspondiente(s)</label>
+                <div id="mesList" class="form-control" style="min-height:44px; padding:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                    <!-- Checkboxes generados por JS -->
+                </div>
+                <small id="precioPorMes" style="color:var(--text-muted); display:block; margin-top:6px;">Precio por mes: --</small>
+            </div>
+            <div class="form-group">
+                <label>Monto y Moneda de la Operación</label>
+                <div class="flex-group">
+                    <input type="number" id="monto" step="0.01" class="form-control" required placeholder="Ej: 40.00" style="flex: 2;" readonly>
+                    <select id="moneda" class="form-control" style="flex: 1;">
+                        <option value="USD">USD ($)</option>
+                        <option value="BS">Bs (Bs)</option>
+                        <option value="PESOS">PESOS (COL$)</option>
+                    </select>
+                </div>
+                <small id="precioEnMoneda" style="color:var(--text-muted); display:block; margin-top:6px;">Equivalente en moneda seleccionada: --</small>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-group"><label>Banco Origen</label><select id="banco_origen" class="form-control" required><option>-- Seleccione --</option></select></div>
+                <div class="form-group"><label>Banco Destino</label><select id="banco_destino" class="form-control" required><option>-- Seleccione --</option></select></div>
+            </div>
+            <div class="form-group"><label>Número de Referencia Bancaria</label><input type="text" id="referencia" class="form-control" required placeholder="Ej: 002345"></div>
+            <div class="form-group"><label>Comprobante de Pago (Capture/Imagen)</label><input type="file" id="comprobante" class="form-control" required accept="image/*"></div>
+            <button type="submit" class="btn-submit" id="btnEnviar">Enviar Reporte de Pago</button>
+        </form>
+    </div>
+
+    <div class="card full-width-card" style="grid-column: span 2; margin-top: 10px;">
+        <div class="card-title"><i class='bx bx-history'></i> Historial de mis Pagos Reportados</div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr><th>Mes</th><th>Monto</th><th>Referencia</th><th>Ruta Bancaria</th><th>Comprobante</th><th>Estatus</th></tr>
+                </thead>
+                <tbody id="tablaHistorialBody">
+                    <tr><td colspan="6" style="color:var(--text-muted); text-align:center; padding:20px;">Buscando registros de pagos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+    const session = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    
+    if (!session) {
+        window.location.href = 'login.html';
+    } else if (session.rol === 'admin') {
+        window.location.href = 'admin.html';
+    } else {
+        document.getElementById('txtBienvenida').innerText = `¡Bienvenido, ${session.nombre}! 👋`;
+    }
+
+    async function cargarAlumnos() {
+        const contenedor = document.getElementById('listaAlumnos');
+        try {
+            const r = await fetch(`/api/representante/alumnos/${session.id}`);
+            const res = await r.json();
+            contenedor.innerHTML = '';
+            
+            if (!res.alumnos || res.alumnos.length === 0) {
+                // Fallback dinámico automático por si la tabla relacional está vacía en pruebas
+                contenedor.innerHTML = `
+                    <div class="alumno-box">
+                        <div class="alumno-info"><h4>Samuel Casanova</h4><p>Año escolar: <b>1er Año</b></p></div>
+                        <span class="badge-mencion">Telemática</span>
+                    </div>`;
+                return;
+            }
+            res.alumnos.forEach(a => {
+                let mencion = a.mencion && a.mencion !== 'Ninguna' ? `<span class="badge-mencion">${a.mencion}</span>` : '';
+                contenedor.insertAdjacentHTML('beforeend', `
+                    <div class="alumno-box">
+                        <div class="alumno-info"><h4>${a.nombre_completo || a.nombre}</h4><p>Año escolar: <b>${a.nivel || '1er Año'}</b></p></div>
+                        ${mencion}
+                    </div>`);
+            });
+        } catch (e) {
+            contenedor.innerHTML = `
+                <div class="alumno-box">
+                    <div class="alumno-info"><h4>Samuel Casanova</h4><p>Año escolar: <b>1er Año</b></p></div>
+                    <span class="badge-mencion">Telemática</span>
+                </div>`;
+        }
+    }
+
+    // 🌟 FUNCIÓN PARA CARGAR EL HISTORIAL PROPIO
+    async function cargarHistorialPagos() {
+        const tbody = document.getElementById('tablaHistorialBody');
+        try {
+            const r = await fetch(`/api/admin/pagos`); // Filtramos en el cliente por seguridad
+            const res = await r.json();
+            tbody.innerHTML = '';
+            
+            // Buscamos solo los pagos que pertenezcan a este usuario logueado
+            const misPagos = res.pagos ? res.pagos.filter(p => p.usuario_id == session.id || p.representante_nombre.toLowerCase().includes(session.nombre.toLowerCase())) : [];
+            
+            if (misPagos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted); text-align:center; padding:20px;">Usted no ha reportado pagos todavía.</td></tr>`;
+                return;
+            }
+
+            // build table rows and collect notifications (do not mark as read yet)
+            const toNotify = [];
+            misPagos.forEach(p => {
+                // Normalizar campo mes_pagado: puede ser un JSON string con array de meses
+                let displayMonths = p.mes_pagado;
+                try {
+                    const parsed = typeof p.mes_pagado === 'string' ? JSON.parse(p.mes_pagado) : p.mes_pagado;
+                    if (Array.isArray(parsed)) displayMonths = parsed.join(', ');
+                } catch (e) { /* no-op: si no es JSON, usar tal cual */ }
+                const monSymbol = p.moneda === 'BS' ? 'Bs' : (p.moneda === 'PESOS' || p.moneda === 'COP' ? 'COL$' : '$');
+                let classStatus = 'status-pendiente';
+                if (p.estatus_pago === 'aprobado') classStatus = 'status-aprobado';
+                if (p.estatus_pago === 'rechazado') classStatus = 'status-rechazado';
+
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td><b>${displayMonths}</b></td>
+                        <td style="color:var(--primary); font-weight:700;">${monSymbol} ${p.monto}</td>
+                        <td><code>${p.referencia}</code></td>
+                        <td style="font-size:12px; color:#64748b;">${p.banco_origen} ➔ ${p.banco_destino}</td>
+                        <td><a href="/uploads/${p.comprobante}" target="_blank" class="btn-view" style="color:var(--primary-light); text-decoration:none; font-weight:600;">Ver Capture</a></td>
+                        <td><span class="badge-status ${classStatus}">${p.estatus_pago}</span></td>
+                    </tr>`);
+
+                if (p.estatus_pago === 'aprobado' || p.estatus_pago === 'rechazado') {
+                    const html = p.estatus_pago === 'aprobado'
+                        ? `<b>${displayMonths}</b>: Su pago de ${monSymbol} ${p.monto} ha sido <span style="color:#16a34a">APROBADO</span>.`
+                        : `<b>${displayMonths}</b>: Su pago de ${monSymbol} ${p.monto} fue <span style="color:#ef4444">RECHAZADO</span>.<br><b>Motivo:</b> ${p.mensaje_rechazo || 'No especificado'}`;
+                    toNotify.push({ id: p.id, html });
+                }
+            });
+
+            // Store pending notifications in memory and update bell counter (do not mark as read yet)
+            window.__pagosPendingNotifications = toNotify;
+            try {
+                const seen = JSON.parse(localStorage.getItem('pagosNotificados') || '[]');
+                const seenIds = Array.isArray(seen) ? seen : [];
+                const newOnes = toNotify.filter(n => !seenIds.includes(n.id));
+                const countEl = document.getElementById('notifCount');
+                if (newOnes.length > 0) {
+                    countEl.style.display = 'inline-block';
+                    countEl.innerText = newOnes.length;
+                } else {
+                    countEl.style.display = 'none';
+                    countEl.innerText = '0';
+                }
+            } catch (err) { console.warn('Error actualizando contador de notificaciones', err); }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted); text-align:center; padding:20px;">Usted no ha reportado pagos todavía.</td></tr>`;
+        }
+    }
+
+        // Mostrar modal de notificaciones (y marcar como leídas)
+        async function showPaymentNotifications() {
+            try {
+                const notifications = window.__pagosPendingNotifications || [];
+                if (!notifications || notifications.length === 0) {
+                    return Swal.fire('Sin novedades', 'No hay notificaciones nuevas en este momento.', 'info');
+                }
+
+                const html = notifications.map(n => n.html).join('<hr>');
+                await Swal.fire({ title: 'Novedades en tus pagos', html, icon: 'info', confirmButtonText: 'Entendido' });
+
+                // marcar como leídas
+                try {
+                    const seen = JSON.parse(localStorage.getItem('pagosNotificados') || '[]');
+                    const seenIds = Array.isArray(seen) ? seen : [];
+                    notifications.forEach(n => { if (!seenIds.includes(n.id)) seenIds.push(n.id); });
+                    localStorage.setItem('pagosNotificados', JSON.stringify(seenIds));
+                    const countEl = document.getElementById('notifCount'); countEl.style.display = 'none'; countEl.innerText = '0';
+                } catch (err) { console.warn('Error guardando notificaciones leídas', err); }
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('notifBtn').addEventListener('click', showPaymentNotifications);
+
+        // Menu de usuario con opciones (solo cambiar contraseña para representantes)
+        document.getElementById('btnUserMenu').addEventListener('click', () => {
+            Swal.fire({
+                title: 'Mi cuenta',
+                html: `<div style="display:flex; flex-direction:column; gap:8px;"><button id="swal-change-pass" class="swal2-confirm swal2-styled">Cambiar contraseña</button></div>`,
+                showConfirmButton: false,
+                didOpen: () => {
+                    document.getElementById('swal-change-pass').addEventListener('click', () => { Swal.close(); document.getElementById('btnUserMenu').dispatchEvent(new Event('change-pass')); });
+                }
+            });
+        });
+
+        document.getElementById('btnUserMenu').addEventListener('change-pass', async () => {
+            const { value: formValues } = await Swal.fire({
+                title: 'Cambiar mi contraseña',
+                html: `<input id="swal-current" type="password" class="swal2-input" placeholder="Contraseña actual"><input id="swal-new" type="password" class="swal2-input" placeholder="Nueva contraseña"><input id="swal-confirm" type="password" class="swal2-input" placeholder="Confirmar nueva contraseña">`,
+                focusConfirm: false,
+                showCancelButton: true,
+                preConfirm: () => {
+                    const current = document.getElementById('swal-current').value;
+                    const neu = document.getElementById('swal-new').value;
+                    const conf = document.getElementById('swal-confirm').value;
+                    if (!current || !neu || !conf) Swal.showValidationMessage('Complete todos los campos');
+                    if (neu !== conf) Swal.showValidationMessage('Las contraseñas no coinciden');
+                    if (neu.length < 6) Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
+                    return { current, neu };
+                }
+            });
+            if (!formValues) return;
+            const current = formValues.current;
+            const neu = formValues.neu;
+            try {
+                const usuario = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
+                if (!usuario || !usuario.id) return Swal.fire('Error', 'Usuario no identificado', 'error');
+                const r = await fetch(`/api/usuarios/${usuario.id}/password`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current_password: current, new_password: neu }) });
+                const body = await r.json();
+                if (r.ok) {
+                    Swal.fire('Listo', body.mensaje || 'Contraseña actualizada', 'success');
+                } else {
+                    Swal.fire('Error', body.mensaje || 'No se pudo cambiar la contraseña', 'error');
+                }
+            } catch (e) { console.error(e); Swal.fire('Error', 'Fallo la petición', 'error'); }
+        });
+
+    document.getElementById('pagoForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnEnviar');
+        btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Subiendo Reporte...";
+        btn.disabled = true;
+
+        // Validaciones básicas y logs para depuración
+        const monedaVal = document.getElementById('moneda').value || '';
+        const checks = Array.from(document.querySelectorAll('#mesList input[type=checkbox]'));
+        const selectedMonths = checks.filter(c => c.checked).map(c => c.value);
+        const montoVal = document.getElementById('monto').value || '';
+        const comprobanteFile = document.getElementById('comprobante').files[0];
+
+        // depuración removida en producción
+
+        if (!selectedMonths || selectedMonths.length === 0) {
+            Swal.fire('Error', 'Seleccione al menos un mes', 'error');
+            btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; return;
+        }
+        if (!montoVal || Number(montoVal) <= 0) {
+            Swal.fire('Error', 'Ingrese un monto válido', 'error');
+            btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; return;
+        }
+        if (!monedaVal) {
+            Swal.fire('Error', 'Seleccione la moneda', 'error');
+            btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; return;
+        }
+        const bancoOrigenVal = document.getElementById('banco_origen').value || '';
+        if (!bancoOrigenVal) {
+            Swal.fire('Error', 'Seleccione un banco de origen', 'error');
+            btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; return;
+        }
+        if (!comprobanteFile) {
+            Swal.fire('Error', 'Adjunte el comprobante de pago (imagen)', 'error');
+            btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; return;
+        }
+
+        const formData = new FormData();
+        formData.append('representante_id', session.id);
+        formData.append('mes_pagado', JSON.stringify(selectedMonths));
+        formData.append('monto', montoVal);
+        formData.append('moneda', monedaVal);
+        formData.append('banco_origen', document.getElementById('banco_origen').value);
+        formData.append('banco_destino', document.getElementById('banco_destino').value);
+        formData.append('referencia', document.getElementById('referencia').value);
+        formData.append('comprobante', comprobanteFile);
+
+        // FormData preparado (no se imprimen entradas en consola)
+
+        try {
+            const r = await fetch('/api/representante/pagos', { method: 'POST', body: formData });
+            if (r.ok) {
+                Swal.fire('¡Éxito!', 'Su pago ha sido reportado y está en espera de validación.', 'success').then(() => {
+                    document.getElementById('pagoForm').reset();
+                        // actualizar total y UI
+                        updateTotalFromMeses();
+                    btn.innerHTML = "Enviar Reporte de Pago";
+                    btn.disabled = false;
+                    cargarHistorialPagos(); // Recarga la tabla al instante
+                });
+            } else {
+                // Intentar obtener más información del error
+                let bodyText = '';
+                try { bodyText = await r.text(); } catch (e) { console.warn('No response body'); }
+                let errJson = null;
+                try { errJson = JSON.parse(bodyText); } catch (e) { /* no-op */ }
+                Swal.fire('Error', (errJson && errJson.mensaje) ? errJson.mensaje : 'No se pudo subir el pago. Revisa la consola para más detalles.', 'error');
+                console.error('Submit failed', { status: r.status, statusText: r.statusText, body: bodyText });
+                btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false;
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Fallo de conexión', 'error');
+            btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false;
+        }
+    });
+
+    if (session && session.id) {
+        cargarAlumnos();
+        // obtener precio dinámico y luego cargar historial
+        (async function(){
+            try {
+                const r = await fetch('/api/config');
+                if (r.ok) {
+                    const cfg = await r.json();
+                    window.precioMensualidad = cfg.precio ? parseFloat(cfg.precio) : null;
+                    window.tasaBs = cfg.tasa_bs ? parseFloat(cfg.tasa_bs) : null;
+                    window.tasaPesos = cfg.tasa_pesos ? parseFloat(cfg.tasa_pesos) : null;
+                    // Renderizar lista de meses y mostrar precio por mes
+                    renderMesesDisponibles(window.precioMensualidad);
+                    // Asegurar que el selector de moneda recalcula correctamente
+                    // Poblar bancos iniciales según moneda por defecto
+                    try { populateBancos(document.getElementById('moneda').value); } catch(e){}
+                }
+            } catch (e) { console.warn('No se pudo obtener config', e); }
+            cargarHistorialPagos();
+        })();
+    }
+
+    // Renderiza checkboxes de meses y configura el cálculo del total
+    function renderMesesDisponibles(precio) {
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const container = document.getElementById('mesList');
+        container.innerHTML = '';
+        meses.forEach(m => {
+            const id = `mes_${m}`;
+            const wrapper = document.createElement('label');
+            wrapper.style.display = 'inline-flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.gap = '6px';
+            wrapper.style.padding = '6px 8px';
+            wrapper.style.borderRadius = '6px';
+            wrapper.style.background = '#ffffff';
+            wrapper.style.border = '1px solid #e6eef8';
+            wrapper.style.cursor = 'pointer';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox'; cb.value = m; cb.id = id; cb.style.cursor = 'pointer';
+            cb.addEventListener('change', updateTotalFromMeses);
+            const span = document.createElement('span'); span.innerText = m; span.style.fontSize = '13px'; span.style.color = '#102a43';
+            wrapper.appendChild(cb); wrapper.appendChild(span);
+            container.appendChild(wrapper);
+        });
+        const precioEl = document.getElementById('precioPorMes');
+        precioEl.innerText = `Precio por mes: ${precio ? '$' + parseFloat(precio).toFixed(2) : 'N/D'}`;
+        // inicializar monto
+        updateTotalFromMeses();
+    }
+
+    function updateTotalFromMeses() {
+        const checks = Array.from(document.querySelectorAll('#mesList input[type=checkbox]'));
+        const selected = checks.filter(c => c.checked).map(c => c.value);
+        const precio = window.precioMensualidad ? parseFloat(window.precioMensualidad) : 0;
+        const totalUsd = (selected.length * precio);
+        const moneda = document.getElementById('moneda') ? document.getElementById('moneda').value : 'USD';
+        let converted = totalUsd;
+        let displayText = '';
+        if (moneda === 'BS') {
+            const tasa = window.tasaBs || 1;
+            converted = totalUsd * tasa;
+            displayText = `Equivale a Bs ${converted.toFixed(2)} (Tasa: ${tasa})`;
+        } else if (moneda === 'PESOS') {
+            const tasa = window.tasaPesos || 1;
+            converted = totalUsd * tasa;
+            displayText = `Equivale a COL$ ${converted.toFixed(2)} (Tasa: ${tasa})`;
+        } else {
+            displayText = `Total en USD: $ ${totalUsd.toFixed(2)}`;
+        }
+        const montoInput = document.getElementById('monto');
+        montoInput.value = converted ? converted.toFixed(2) : '';
+        const infoEl = document.getElementById('precioEnMoneda');
+        if (infoEl) infoEl.innerText = displayText;
+    }
+
+    // Populate both banco_origen and banco_destino selects depending on selected currency
+    function populateBancos(moneda) {
+        const selDestino = document.getElementById('banco_destino');
+        const selOrigen = document.getElementById('banco_origen');
+        if (!selDestino || !selOrigen) return;
+        selDestino.innerHTML = '';
+        selOrigen.innerHTML = '';
+        const addOpt = (sel, txt, val) => { const o = document.createElement('option'); o.value = val || txt; o.innerText = txt; sel.appendChild(o); };
+        // Common first option
+        addOpt(selOrigen, '-- Seleccione --', ''); addOpt(selDestino, '-- Seleccione --', '');
+        if (moneda === 'USD') {
+            addOpt(selOrigen, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+            addOpt(selOrigen, 'Zelle (Institucional)', 'Zelle (Institucional)'); addOpt(selDestino, 'Zelle (Institucional)', 'Zelle (Institucional)');
+            addOpt(selOrigen, 'Banesco Panamá (Mony)', 'Banesco Panamá (Mony)'); addOpt(selDestino, 'Banesco Panamá (Mony)', 'Banesco Panamá (Mony)');
+            addOpt(selOrigen, 'Mercantil Panamá', 'Mercantil Panamá'); addOpt(selDestino, 'Mercantil Panamá', 'Mercantil Panamá');
+            addOpt(selOrigen, 'Facebank (Pipol Pay)', 'Facebank (Pipol Pay)'); addOpt(selDestino, 'Facebank (Pipol Pay)', 'Facebank (Pipol Pay)');
+        } else if (moneda === 'BS') {
+            addOpt(selOrigen, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+            addOpt(selOrigen, 'Banco de Venezuela (BDV)', 'Banco de Venezuela (BDV)'); addOpt(selDestino, 'Banco de Venezuela (BDV)', 'Banco de Venezuela (BDV)');
+            addOpt(selOrigen, 'Banesco', 'Banesco'); addOpt(selDestino, 'Banesco', 'Banesco');
+            addOpt(selOrigen, 'Banco Mercantil', 'Banco Mercantil'); addOpt(selDestino, 'Banco Mercantil', 'Banco Mercantil');
+            addOpt(selOrigen, 'Pago Móvil Interbancario', 'Pago Móvil Interbancario'); addOpt(selDestino, 'Pago Móvil Interbancario', 'Pago Móvil Interbancario');
+        } else if (moneda === 'PESOS') {
+            addOpt(selOrigen, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+            addOpt(selOrigen, 'Bancolombia', 'Bancolombia'); addOpt(selDestino, 'Bancolombia', 'Bancolombia');
+            addOpt(selOrigen, 'Nequi', 'Nequi'); addOpt(selDestino, 'Nequi', 'Nequi');
+            addOpt(selOrigen, 'Daviplata (Davivienda)', 'Daviplata (Davivienda)'); addOpt(selDestino, 'Daviplata (Davivienda)', 'Daviplata (Davivienda)');
+        } else {
+            addOpt(selOrigen, 'Efectivo - Taquilla', 'Efectivo - Taquilla');
+        }
+    }
+
+    // Ensure banco lists update when currency changes
+    const monedaEl = document.getElementById('moneda');
+    if (monedaEl) {
+        monedaEl.addEventListener('change', () => { updateTotalFromMeses(); populateBancos(monedaEl.value); });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso al Sistema | 12 de Febrero</title>
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #1e3a8a; --bg: #0f172a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, var(--bg) 0%, var(--primary) 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { background: white; width: 100%; max-width: 350px; padding: 35px 30px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.25); text-align: center; }
+        .logo-login { height: 60px; margin-bottom: 12px; background: white; border-radius: 50%; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        h2 { font-size: 19px; color: var(--bg); font-weight: 700; margin-bottom: 6px; }
+        p { color: #64748b; font-size: 12.5px; margin-bottom: 22px; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; font-size: 11.5px; font-weight: 600; color: #334155; margin-bottom: 5px; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper .icon-left { position: absolute; left: 12px; color: #94a3b8; font-size: 17px; }
+        .input-wrapper .toggle-password { position: absolute; right: 12px; color: #94a3b8; font-size: 18px; cursor: pointer; }
+        .form-control { width: 100%; padding: 10px 36px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #f8fafc; outline: none; }
+        .form-control:focus { border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
+        .btn-login { background: var(--primary); color: white; border: none; width: 100%; padding: 11px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; margin-top: 5px; transition: 0.2s; }
+        .btn-login:hover { background: #172554; }
+        .footer-link { margin-top: 18px; font-size: 12px; color: #64748b; }
+        .footer-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <img src="logo.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2941/2941582.png'" class="logo-login">
+        <h2>Control de Pagos</h2>
+        <p>Ingrese sus credenciales para continuar.</p>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <div class="input-wrapper"><i class='bx bx-envelope icon-left'></i><input type="email" id="correo" class="form-control" required placeholder="ejemplo@correo.com"></div>
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <div class="input-wrapper">
+                    <i class='bx bx-lock-alt icon-left'></i>
+                    <input type="password" id="contrasena" class="form-control" required placeholder="••••••••">
+                    <i class='bx bx-hide toggle-password' id="eyeIcon" onclick="togglePasswordVisibility()"></i>
+                </div>
+            </div>
+            <button type="submit" class="btn-login" id="btnSubmit">Ingresar al Sistema</button>
+        </form>
+        <div class="footer-link">¿No tiene una cuenta? <a href="registro.html">Regístrate aquí</a></div>
+    </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const p = document.getElementById('contrasena'); const i = document.getElementById('eyeIcon');
+            if (p.type === 'password') { p.type = 'text'; i.className = 'bx bx-show toggle-password'; }
+            else { p.type = 'password'; i.className = 'bx bx-hide toggle-password'; }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit'); 
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Verificando...";
+            btn.disabled = true;
+
+            const correo = document.getElementById('correo').value;
+            const contrasena = document.getElementById('contrasena').value;
+            
+            try {
+                const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ correo, contrasena }) });
+                const res = await r.json();
+                
+                if (r.ok) {
+                    // 🛡️ EXTRACTOR SUPREMO: Busca las variables tanto si vienen sueltas o anidadas en objeto usuario
+                    const datosSeguros = res.usuario || res.user || res;
+                    const idFinal = datosSeguros.id || res.id;
+                    const nombreFinal = datosSeguros.nombre_completo || datosSeguros.nombre || res.nombre_completo || "Representante";
+                    const rolFinal = datosSeguros.rol || res.rol || "representante";
+                    
+                    // Guardamos la sesión limpia y verídica
+                    localStorage.setItem('usuarioLogueado', JSON.stringify({ id: idFinal, nombre: nombreFinal, rol: rolFinal }));
+                    
+                    Swal.fire({ title: `¡Bienvenido!`, icon: 'success', timer: 1200, showConfirmButton: false }).then(() => {
+                        if (rolFinal === 'admin') {
+                            window.location.href = 'admin.html'; 
+                        } else {
+                            window.location.href = 'dashboard.html'; 
+                        }
+                    });
+                } else { 
+                    btn.innerHTML = textoOriginal;
+                    btn.disabled = false;
+                    Swal.fire({ title: 'Error de Acceso', text: res.mensaje, icon: 'error' });
+                }
+            } catch (e) { 
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false; 
+                Swal.fire('Error', 'Fallo de conexión con el servidor', 'error'); 
+            }
+        });
+    </script>
+</body>
+</html>
