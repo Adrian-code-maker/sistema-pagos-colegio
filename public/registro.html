@@ -251,12 +251,17 @@
                 }); 
             });
 
-            const data = { 
-                nombre_completo: document.getElementById('nombre').value, 
-                cedula: document.getElementById('cedula').value, 
-                correo: document.getElementById('correo').value, 
-                contrasena: document.getElementById('contrasena').value, 
-                alumnos 
+           const nacionalidad = document.getElementById('nacionalidad').value;
+const cedulaNumero = document.getElementById('cedula').value.trim();
+const cedulaFinal = `${nacionalidad}-${cedulaNumero}`;
+
+const data = { 
+    nombre_completo: document.getElementById('nombre').value, 
+    cedula: cedulaFinal, // Envia "V-12345678" o "E-12345678"
+    correo: document.getElementById('correo').value, 
+    contrasena: document.getElementById('contrasena').value, 
+    alumnos 
+};
             };
             
             try {
