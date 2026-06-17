@@ -42,23 +42,27 @@
         .btn-fijar { background: linear-gradient(90deg,#10b981,#059669); color:white; border:none; padding:10px 14px; border-radius:10px; font-weight:700; display:inline-flex; align-items:center; gap:8px; cursor:pointer; height: 38px; }
         .btn-fijar i { font-size:16px; }
         .table-container { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 30px; }
+        
+        /* Ajustes de Tabla para evitar Scroll Horizontal */
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background: #f8fafc; padding: 10px 15px; font-weight: 600; color: #64748b; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; white-space: nowrap; }
-        td { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-size: 12.5px; vertical-align: middle; }
-        .no-wrap { white-space: nowrap; }
+        th { background: #f8fafc; padding: 10px; font-weight: 600; color: #64748b; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; }
+        /* El secreto para evitar el scroll: word-break y max-width */
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; max-width: 180px; }
+        
         .badge { display: inline-flex; padding: 3px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; }
         .badge-active { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
         .badge-pending { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
         .badge-admin { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
         .badge-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-        .btn-action { border: none; width: 26px; height: 26px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-right: 4px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-action { border: none; width: 26px; height: 26px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-right: 4px; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-approve { background: #ecfdf5; color: var(--success); border: 1px solid #a7f3d0; }
         .btn-approve:hover { background: var(--success); color: white; }
+        .btn-reject { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+        .btn-reject:hover { background: var(--danger); color: white; }
         .btn-view { background: #f8fafc; color: #334155; border: 1px solid var(--border); text-decoration: none; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
-        .hijos-list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
-        .hijos-list li { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 11.5px; border: 1px solid #e2e8f0; font-weight: 500; }
+        .hijos-list { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; margin: 0; }
+        .hijos-list li { background: #f1f5f9; color: #475569; padding: 3px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #e2e8f0; font-weight: 500; }
 
-        /* OPTIMIZACIÓN RESPONSIVA ADMNISTRADOR */
         @media (max-width: 768px) {
             .navbar { flex-direction: column; padding: 15px; gap: 12px; text-align: center; }
             .navbar div { flex-direction: column; gap: 10px; width: 100%; justify-content: center; }
@@ -76,8 +80,8 @@
             body { background: white; padding: 0; }
             .navbar, .welcome-banner, .toolbar, .btn-action, .btn-view { display: none !important; }
             .main-content { padding: 0; max-width: 100%; }
-            .table-container { box-shadow: none; border: 1px solid #000; }
-            th, td { border-bottom: 1px solid #ccc; font-size: 11px; padding: 6px; }
+            .table-container { box-shadow: none; border: 1px solid #000; overflow: visible; }
+            th, td { border-bottom: 1px solid #ccc; font-size: 10px; padding: 4px; }
             .section-title { color: black; margin-top: 30px; }
         }
     </style>
@@ -118,17 +122,22 @@
         </div>
     </div>
     <div class="toolbar">
-        <div class="search-box"><i class='bx bx-search'></i><input type="text" id="buscador" class="search-input" onkeyup="filtrarTablas()" placeholder="🔍 Buscar..."></div>
+        <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" id="buscador" class="search-input" onkeyup="filtrarTablas()" placeholder="🔍 Buscar pagos o usuarios por nombre, referencia...">
+        </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap; width: 100%; max-width: 400px;" class="admin-btns-box">
             <button class="btn-print" onclick="window.print()" style="flex:1;"><i class='bx bx-printer'></i> Imprimir PDF</button>
             <button id="btnRegistrarPagoManual" class="btn-print" style="background: linear-gradient(90deg,#10b981,#059669); flex:1.5;"><i class='bx bx-plus'></i> Registrar Pago Manual</button>
         </div>
     </div>
     <div class="section-title">Control de Representantes</div>
-    <div class="table-container"><table><thead><tr><th>Representante</th><th>Cédula</th><th>Correo</th><th>Rol</th><th>Estatus</th><th>Alumnos</th><th>Acción</th></tr></thead><tbody id="tablaUsuariosBody"></tbody></table></div>
+    <div class="table-container"><table><thead><tr><th>Representante</th><th>Cédula</th><th>Correo</th><th>Rol</th><th>Estatus</th><th>Alumnos</th><th style="width: 100px;">Acción</th></tr></thead><tbody id="tablaUsuariosBody"></tbody></table></div>
+    
     <div class="section-title">Pagos Reportados</div>
-    <div class="table-container"><table><thead><tr><th>Representante</th><th>Mes</th><th>Monto</th><th>Referencia</th><th>Ruta Bancaria</th><th>Comprobante</th><th>Estatus</th><th>Acciones</th></tr></thead><tbody id="tablaPagosBody"></tbody></table></div>
+    <div class="table-container"><table><thead><tr><th>Representante</th><th>Mes</th><th>Monto</th><th>Referencia</th><th>Ruta Bancaria</th><th>Comprobante</th><th>Estatus</th><th style="width: 80px;">Acciones</th></tr></thead><tbody id="tablaPagosBody"></tbody></table></div>
 </div>
+
 <script>
     function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     let user = null;
@@ -137,10 +146,13 @@
         const nombreAdmin = user.nombre || "Administrador";
         document.getElementById('adminNombre').innerText = `¡Bienvenido, ${nombreAdmin}! 👋`;
     }
+
+    // Tu función de la lupa (ya funciona perfecto filtrando las filas de ambas tablas)
     function filtrarTablas() {
         let f = document.getElementById('buscador').value.toLowerCase();
         document.querySelectorAll('tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(f) ? '' : 'none');
     }
+
     async function cargarUsuarios() {
         try {
             const r = await fetch('/api/admin/usuarios'); if (!r.ok) return;
@@ -156,11 +168,17 @@
                     hijos += `<li>${a.nombre_completo || a.nombre} - <small>${info}</small></li>`;
                 });
                 const badgeClass = u.estatus === 'pendiente' ? 'badge-pending' : 'badge-active';
-                const boton = u.estatus === 'pendiente' ? `<button class="btn-view" style="background:var(--primary); color:white; border:none; cursor:pointer; padding:5px 12px;" onclick="aprobarUsuario(${u.id})">Aprobar</button>` : `<span style="color:#cbd5e1; font-size: 12px; font-weight:600;">Activo</span>`;
-                tbody.insertAdjacentHTML('beforeend', `<tr><td class="no-wrap"><b>${u.nombre_completo}</b></td><td>${u.cedula}</td><td>${u.correo}</td><td><span class="badge ${u.rol==='admin'?'badge-admin':''}">${u.rol}</span></td><td><span class="badge ${badgeClass}">${u.estatus}</span></td><td><ul class="hijos-list">${hijos}</ul></td><td class="no-wrap">${boton}</td></tr>`);
+                
+                // Botón de aprobar + Texto de "Activo" + Botón de Eliminar
+                const botonAprobar = u.estatus === 'pendiente' ? `<button class="btn-view" style="background:var(--primary); color:white; border:none; cursor:pointer; padding:5px 12px; margin-right:5px;" onclick="aprobarUsuario(${u.id})">Aprobar</button>` : `<span style="color:#94a3b8; font-size: 12px; font-weight:600; margin-right:8px;">Activo</span>`;
+                const botonEliminar = `<button class="btn-action btn-reject" title="Eliminar Usuario" onclick="eliminarUsuario(${u.id})"><i class='bx bx-trash'></i></button>`;
+                const accionesHTML = `<div style="display:flex; align-items:center;">${botonAprobar}${botonEliminar}</div>`;
+
+                tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${u.nombre_completo}</b></td><td>${u.cedula}</td><td>${u.correo}</td><td><span class="badge ${u.rol==='admin'?'badge-admin':''}">${u.rol}</span></td><td><span class="badge ${badgeClass}">${u.estatus}</span></td><td><ul class="hijos-list">${hijos}</ul></td><td>${accionesHTML}</td></tr>`);
             });
         } catch(e) { console.error(e); }
     }
+
     async function cargarPagos() {
         try {
             const r = await fetch('/api/admin/pagos'); if (!r.ok) return;
@@ -170,11 +188,13 @@
             res.pagos.forEach(p => {
                 const mon = p.moneda === 'BS' ? 'Bs' : (p.moneda === 'PESOS' || p.moneda === 'COP' ? 'COL$' : '$');
                 let badgeClass = p.estatus_pago === 'aprobado' ? 'badge-active' : (p.estatus_pago === 'rechazado' ? 'badge-danger' : 'badge-pending');
-                const acciones = p.estatus_pago === 'pendiente' ? `<button class="btn-action btn-approve" title="Aprobar" onclick="aprobarPago(${p.id})"><i class='bx bx-check'></i></button><button class="btn-action btn-reject" title="Rechazar" onclick="rechazarPago(${p.id})"><i class='bx bx-x'></i></button>` : `<span style="color:#94a3b8; font-size:13px;">Procesado</span>`;
-                tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${p.representante_nombre}</b></td><td>${p.mes_pagado}</td><td>${mon} ${p.monto}</td><td><code>${p.referencia}</code></td><td>${p.banco_origen} ➔ ${p.banco_destino}</td><td><a href="/uploads/${p.comprobante}" target="_blank" class="btn-view">Ver</a></td><td><span class="badge ${badgeClass}">${p.estatus_pago}</span></td><td class="no-wrap">${acciones}</td></tr>`);
+                const acciones = p.estatus_pago === 'pendiente' ? `<div style="display:flex;"><button class="btn-action btn-approve" title="Aprobar" onclick="aprobarPago(${p.id})"><i class='bx bx-check'></i></button><button class="btn-action btn-reject" title="Rechazar" onclick="rechazarPago(${p.id})"><i class='bx bx-x'></i></button></div>` : `<span style="color:#94a3b8; font-size:12px; font-weight:600;">Procesado</span>`;
+                
+                tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${p.representante_nombre}</b></td><td>${p.mes_pagado}</td><td style="white-space:nowrap;">${mon} ${p.monto}</td><td><code>${p.referencia}</code></td><td>${p.banco_origen} ➔ ${p.banco_destino}</td><td><a href="/uploads/${p.comprobante}" target="_blank" class="btn-view">Ver</a></td><td><span class="badge ${badgeClass}">${p.estatus_pago}</span></td><td>${acciones}</td></tr>`);
             });
         } catch(e) { console.error(e); }
     }
+
     function aprobarUsuario(id) {
         Swal.fire({ title: '¿Aprobar Representante?', text: "Se habilitará su acceso al portal.", icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#64748b', confirmButtonText: 'Sí, Aprobar' }).then(async (result) => {
             if (result.isConfirmed) {
@@ -183,6 +203,32 @@
             }
         });
     }
+
+    // NUEVA FUNCIÓN: Eliminar Usuario
+    function eliminarUsuario(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡Eliminarás a este usuario y a todos sus alumnos del sistema! Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, Eliminar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const r = await fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' });
+                    if (r.ok) {
+                        Swal.fire('¡Eliminado!', 'El usuario ha sido borrado del sistema.', 'success');
+                        cargarUsuarios(); // Recarga la tabla
+                    } else {
+                        Swal.fire('Error', 'Hubo un problema al intentar borrar el usuario.', 'error');
+                    }
+                } catch (err) { console.error(err); }
+            }
+        });
+    }
+
     async function aprobarPago(id) {
         const { value: confirm } = await Swal.fire({ title: '¿Aprobar pago?', text: 'Marcar el pago como aprobado.', icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#64748b', confirmButtonText: 'Sí, aprobar' });
         if (confirm) {
@@ -192,6 +238,7 @@
             } catch (err) { console.error(err); }
         }
     }
+
     async function rechazarPago(id) {
         const { value: motivo } = await Swal.fire({ title: 'Motivo del rechazo', input: 'textarea', inputLabel: 'Escribe la razón por la cual se rechaza el pago', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b', confirmButtonText: 'Rechazar' });
         if (motivo !== undefined) {
@@ -201,7 +248,9 @@
             } catch (err) { console.error(err); }
         }
     }
+
     if (user && user.rol === 'admin') { cargarUsuarios(); cargarPagos(); }
+
     async function cargarPrecioMensualidad() {
         try {
             const r = await fetch('/api/config'); if (!r.ok) return;
@@ -214,6 +263,7 @@
             if (res.tasa_pesos) { document.getElementById('tasaPesosInput').value = res.tasa_pesos; window.tasaPesos = parseFloat(res.tasa_pesos); }
         } catch (e) { console.error(e); }
     }
+
     document.getElementById('btnFijarTasas').addEventListener('click', async () => {
         const nuevo = document.getElementById('precioMensualidadInput').value;
         let tasaBs = document.getElementById('tasaBsInput').value;
@@ -231,6 +281,7 @@
             }
         } catch (e) { Swal.fire('Error', 'Fallo al actualizar', 'error'); }
     });
+
     if (user && user.rol === 'admin') { cargarPrecioMensualidad(); }
 
     function renderMesesModal(precio, containerId = 'modal-meses') {
@@ -244,6 +295,7 @@
         });
         updateTotalModal();
     }
+
     function updateTotalModal() {
         const checks = Array.from(document.querySelectorAll('#modal-meses input[type=checkbox]'));
         const selected = checks.filter(c => c.checked).map(c => c.value);
@@ -256,45 +308,47 @@
         document.getElementById('modal-monto').value = converted ? converted.toFixed(2) : '';
         if (document.getElementById('modal-total')) document.getElementById('modal-total').innerText = displayText;
     }
-   function populateBancos(moneda) {
-    const selD = document.getElementById('banco_destino'); 
-    const selO = document.getElementById('banco_origen'); 
-    if (!selD || !selO) return; 
-    selD.innerHTML = ''; selO.innerHTML = '';
-    
-    const addOpt = (sel, txt, val) => { 
-        const o = document.createElement('option'); 
-        o.value = val || txt; o.innerText = txt; 
-        sel.appendChild(o); 
-    };
-    
-    addOpt(selO, '-- Seleccione --', ''); 
-    addOpt(selD, '-- Seleccione --', '');
-    
-    if (moneda === 'USD') { 
-        addOpt(selO, 'Efectivo - Taquilla'); 
-        addOpt(selO, 'Zelle (Institucional)'); addOpt(selD, 'Zelle (Institucional)'); 
-        addOpt(selO, 'Banesco Panamá (Mony)'); addOpt(selD, 'Banesco Panamá (Mony)'); 
-        addOpt(selO, 'Mercantil Panamá'); addOpt(selD, 'Mercantil Panamá'); 
-        addOpt(selO, 'Facebank (Pipol Pay)'); addOpt(selD, 'Facebank (Pipol Pay)'); 
-    } 
-    else if (moneda === 'BS') { 
-        addOpt(selO, 'Efectivo - Taquilla'); 
-        addOpt(selO, 'Banco de Venezuela (BDV)'); addOpt(selD, 'Banco de Venezuela (BDV)'); 
-        addOpt(selO, 'Banesco'); addOpt(selD, 'Banesco'); 
-        addOpt(selO, 'Banco Mercantil'); addOpt(selD, 'Banco Mercantil'); 
-        addOpt(selO, 'BBVA Provincial'); addOpt(selD, 'BBVA Provincial'); 
-        addOpt(selO, 'Pago Móvil Interbancario'); addOpt(selD, 'Pago Móvil Interbancario'); 
-    } 
-    else if (moneda === 'PESOS') { 
-        addOpt(selO, 'Efectivo - Taquilla'); 
-        addOpt(selO, 'Bancolombia'); addOpt(selD, 'Bancolombia'); 
-        addOpt(selO, 'Nequi'); addOpt(selD, 'Nequi'); 
-        addOpt(selO, 'Daviplata (Davivienda)'); addOpt(selD, 'Daviplata (Davivienda)'); 
-        addOpt(selO, 'Banco de Bogotá'); addOpt(selD, 'Banco de Bogotá');
-        addOpt(selO, 'BBVA Colombia'); addOpt(selD, 'BBVA Colombia');
+
+    function populateModalBancos(moneda) {
+        const selD = document.getElementById('modal-banco-destino'); 
+        const selO = document.getElementById('modal-banco-origen'); 
+        if (!selD || !selO) return; 
+        selD.innerHTML = ''; selO.innerHTML = '';
+        
+        const addOpt = (sel, txt, val) => { 
+            const o = document.createElement('option'); 
+            o.value = val || txt; o.innerText = txt; 
+            sel.appendChild(o); 
+        };
+        
+        addOpt(selO, '-- Seleccione --', ''); 
+        addOpt(selD, '-- Seleccione --', '');
+        
+        if (moneda === 'USD') { 
+            addOpt(selO, 'Efectivo - Taquilla'); 
+            addOpt(selO, 'Zelle (Institucional)'); addOpt(selD, 'Zelle (Institucional)'); 
+            addOpt(selO, 'Banesco Panamá (Mony)'); addOpt(selD, 'Banesco Panamá (Mony)'); 
+            addOpt(selO, 'Mercantil Panamá'); addOpt(selD, 'Mercantil Panamá'); 
+            addOpt(selO, 'Facebank (Pipol Pay)'); addOpt(selD, 'Facebank (Pipol Pay)'); 
+        } 
+        else if (moneda === 'BS') { 
+            addOpt(selO, 'Efectivo - Taquilla'); 
+            addOpt(selO, 'Banco de Venezuela (BDV)'); addOpt(selD, 'Banco de Venezuela (BDV)'); 
+            addOpt(selO, 'Banesco'); addOpt(selD, 'Banesco'); 
+            addOpt(selO, 'Banco Mercantil'); addOpt(selD, 'Banco Mercantil'); 
+            addOpt(selO, 'BBVA Provincial'); addOpt(selD, 'BBVA Provincial'); 
+            addOpt(selO, 'Pago Móvil Interbancario'); addOpt(selD, 'Pago Móvil Interbancario'); 
+        } 
+        else if (moneda === 'PESOS') { 
+            addOpt(selO, 'Efectivo - Taquilla'); 
+            addOpt(selO, 'Bancolombia'); addOpt(selD, 'Bancolombia'); 
+            addOpt(selO, 'Nequi'); addOpt(selD, 'Nequi'); 
+            addOpt(selO, 'Daviplata (Davivienda)'); addOpt(selD, 'Daviplata (Davivienda)'); 
+            addOpt(selO, 'Banco de Bogotá'); addOpt(selD, 'Banco de Bogotá');
+            addOpt(selO, 'BBVA Colombia'); addOpt(selD, 'BBVA Colombia');
+        }
     }
-}
+
     async function openRegistrarPagoModal() {
         if (!window.adminUsuarios) return;
         const { value: formValues } = await Swal.fire({
@@ -337,14 +391,17 @@
         } catch (e) { Swal.fire('Error', 'Fallo de conexión', 'error'); }
     }
     document.getElementById('btnRegistrarPagoManual').addEventListener('click', openRegistrarPagoModal);
+    
     document.getElementById('tasaBsInput').addEventListener('focus', () => { document.getElementById('tasaBsInput').value = String(document.getElementById('tasaBsInput').value || '').replace(/,/g, '.').replace(/\s/g,''); });
     document.getElementById('tasaBsInput').addEventListener('blur', () => {
         const n = parseFloat(String(document.getElementById('tasaBsInput').value || '').replace(/,/g,'.'));
         if (!isNaN(n)) document.getElementById('tasaBsInput').value = n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     });
+    
     document.getElementById('btnUserMenu').addEventListener('click', () => {
         Swal.fire({ title: 'Cuenta', html: `<button id="swal-change-pass" class="swal2-confirm swal2-styled">Cambiar contraseña</button>`, showConfirmButton: false, didOpen: () => { document.getElementById('swal-change-pass').addEventListener('click', () => { Swal.close(); cambiarMiClaveModal(); }); } });
     });
+    
     async function cambiarMiClaveModal() {
         const { value: v } = await Swal.fire({
             title: 'Cambiar contraseña',
