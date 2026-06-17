@@ -63,7 +63,7 @@ app.get('/', (req, res) => {
     res.send('Servidor funcionando correctamente ✅');
 });
 
-// Ruta: Registro (Integrada correctamente)
+// Ruta: Registro
 app.post('/api/registrar', async (req, res) => {
     const { nombre_completo, cedula, correo, contrasena, alumnos } = req.body;
     const client = await pool.connect();
@@ -131,7 +131,7 @@ app.get('/api/representante/alumnos/:id', async (req, res) => {
 });
 
 // ==========================================================
-// ?? RUTA ACTUALIZADA: REPORTAR PAGO CON MONEDA Y COMPROBANTE
+// RUTA ACTUALIZADA: REPORTAR PAGO CON MONEDA Y COMPROBANTE
 // ==========================================================
 app.post('/api/representante/pagos', upload.single('comprobante'), async (req, res) => {
   const { mes_pagado, monto, moneda, referencia, banco_origen, banco_destino, representante_id } = req.body;
@@ -209,8 +209,9 @@ app.put('/api/admin/usuarios/:id/estatus', async (req, res) => {
     res.status(500).json({ ok: false, mensaje: 'Error al actualizar.' });
   }
 });
+
 // ==========================================
-// ?? RUTA ADMIN: OBTENER TODOS LOS PAGOS
+// RUTA ADMIN: OBTENER TODOS LOS PAGOS
 // ==========================================
 app.get('/api/admin/pagos', async (req, res) => {
   try {
@@ -229,7 +230,7 @@ app.get('/api/admin/pagos', async (req, res) => {
 });
 
 // ==========================================
-// ?? RUTA ADMIN: APROBAR O RECHAZAR UN PAGO
+// RUTA ADMIN: APROBAR O RECHAZAR UN PAGO
 // ==========================================
 app.put('/api/admin/pagos/:id/estatus', async (req, res) => {
   const { id } = req.params;
@@ -249,8 +250,9 @@ app.put('/api/admin/pagos/:id/estatus', async (req, res) => {
     res.status(500).json({ ok: false, mensaje: 'Error al actualizar el estatus del pago.' });
   }
 });
+
 // ==========================================
-// ?? RUTA REPRESENTANTE: VER HISTORIAL DE PAGOS
+// RUTA REPRESENTANTE: VER HISTORIAL DE PAGOS
 // ==========================================
 app.get('/api/representante/historial-pagos/:id', async (req, res) => {
   const { id } = req.params;
@@ -277,6 +279,7 @@ app.get('/api/health', async (req, res) => {
     res.status(500).json({ ok: false, mensaje: 'Error al ejecutar health check', error: error.message });
   }
 });
+
 // ========================================================
 // RUTA SECRETA MAESTRA - TRUNCADO SEGURO ANTI-CHOQUES
 // ========================================================
@@ -342,7 +345,7 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
             );
         `);
 
-        // 2. ?? EL TRUCO MAESTRO: Vaciamos y reseteamos los IDs de todas las tablas limpiamente sin destruirlas
+        // 2. EL TRUCO MAESTRO: Vaciamos y reseteamos los IDs de todas las tablas limpiamente sin destruirlas
         await pool.query(`TRUNCATE TABLE pagos, alumnos, usuarios, ajustes RESTART IDENTITY CASCADE;`);
 
         // 3. Sembramos los datos limpios de la defensa
@@ -360,7 +363,7 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
 
         res.send(`
             <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-                <h1 style="color:#28a745;">?? ¡Base de Datos Inicializada al 100%! ??</h1>
+                <h1 style="color:#28a745;">✅ ¡Base de Datos Inicializada al 100%! ✅</h1>
                 <p style="font-size:18px;">El sistema se encuentra limpio, vacío y listo para la defensa.</p>
                 <a href="/login.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Ir al Login</a>
             </div>
@@ -368,10 +371,6 @@ app.get('/inicializar-sistema-12febrero', async (req, res) => {
     } catch (error) {
         res.status(500).send("<h1>Error en la inyección maestra:</h1><p>" + error.message + "</p>");
     }
-});
-// ========================================================
-app.listen(PORT, () => {
-  console.log(`?? Servidor corriendo en el puerto ${PORT}`);
 });
 
 // ==============================
