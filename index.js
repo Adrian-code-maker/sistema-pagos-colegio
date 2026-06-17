@@ -4,9 +4,36 @@ const multer = require('multer');
 const path = require('path');
 require('dotenv').config();
 const pool = require('./db');
-
+const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 3000;
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'colegiodefebrero0@gmail.com', 
+        pass: 'lntj lwjq fgkx nujn'     //
+    }
+});
+
+const enviarFacturaEmail = async (correoDestino, datosPago) => {
+    try {
+        await transporter.sendMail({
+            from: '"Control Pagos 12 de Febrero" colegiodefebrero0@gmail.com,
+            to: correoDestino,
+            subject: "🧾 Factura Digital - Pago Aprobado",
+            html: `
+                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ccc; border-radius: 10px;">
+                    <h2 style="color: #1e3a8a;">U.E. 12 de Febrero</h2>
+                    <p>Estimado representante, su pago de <b>${datosPago.moneda} ${datosPago.monto}</b> ha sido aprobado exitosamente.</p>
+                    <p>Referencia: ${datosPago.referencia}</p>
+                    <p>¡Gracias por su puntualidad!</p>
+                </div>`
+        });
+        console.log("Factura enviada exitosamente a " + correoDestino);
+    } catch (error) {
+        console.error("Error enviando correo:", error);
+    }
+};
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
@@ -70,10 +97,29 @@ app.get('/', (req, res) => {
 });
 
 // Ruta: Registro
-app.post('/api/registro', async (req, res) => {
-  const { nombre_completo, cedula, correo, contrasena, alumnos } = req.body;
-  const client = await pool.connect();
-  try {
+app.put('/api/admin/pagos/:id/estatus', async (req, res) => {
+    const { id } = req.params;
+    const { estatus_pago, mensaje_rechazo } = req.body;
+
+    try {
+        await pool.query('UPDATE pagos SET estatus_pago = $1, mensaje_rechazo = $2 WHERE id = $3', 
+        [estatus_pago, mensaje_rechazo, id]);
+
+        // <--- AGREGAR ESTO DESDE AQUÍ:
+        if (estatus_pago === 'aprobado') {
+            const result = await pool.query('SELECT u.correo FROM usuarios u JOIN pagos p ON p.usuario_id = u.id WHERE p.id = $1', [id]);
+            if (result.rows.length > 0) {
+                // Obtenemos datos del pago para la factura
+                const pagoData = await pool.query('SELECT monto, moneda, referencia FROM pagos WHERE id = $1', [id]);
+                enviarFacturaEmail(result.rows[0].correo, pagoData.rows[0]);
+            }
+        }
+    
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
     await client.query('BEGIN');
     const salt = await bcrypt.genSalt(10);
     const contrasenaEncriptada = await bcrypt.hash(contrasena, salt);
