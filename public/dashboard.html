@@ -250,14 +250,45 @@
         if (document.getElementById('precioEnMoneda')) document.getElementById('precioEnMoneda').innerText = displayText;
     }
 
-    function populateBancos(moneda) {
-        const selD = document.getElementById('banco_destino'); const selO = document.getElementById('banco_origen'); if (!selD || !selO) return; selD.innerHTML = ''; selO.innerHTML = '';
-        const addOpt = (sel, txt, val) => { const o = document.createElement('option'); o.value = val || txt; o.innerText = txt; sel.appendChild(o); };
-        addOpt(selO, '-- Seleccione --', ''); addOpt(selD, '-- Seleccione --', '');
-        if (moneda === 'USD') { addOpt(selO, 'Efectivo - Taquilla'); addOpt(selO, 'Zelle'); addOpt(selD, 'Zelle'); }
-        else if (moneda === 'BS') { addOpt(selO, 'Efectivo - Taquilla'); addOpt(selO, 'Banco de Venezuela'); addOpt(selD, 'Banco de Venezuela'); addOpt(selO, 'Pago Móvil'); addOpt(selD, 'Pago Móvil'); }
-        else if (moneda === 'PESOS') { addOpt(selO, 'Efectivo - Taquilla'); addOpt(selO, 'Bancolombia'); addOpt(selD, 'Bancolombia'); }
+  function populateBancos(moneda) {
+    const selD = document.getElementById('banco_destino'); 
+    const selO = document.getElementById('banco_origen'); 
+    if (!selD || !selO) return; 
+    selD.innerHTML = ''; selO.innerHTML = '';
+    
+    const addOpt = (sel, txt, val) => { 
+        const o = document.createElement('option'); 
+        o.value = val || txt; o.innerText = txt; 
+        sel.appendChild(o); 
+    };
+    
+    addOpt(selO, '-- Seleccione --', ''); 
+    addOpt(selD, '-- Seleccione --', '');
+    
+    if (moneda === 'USD') { 
+        addOpt(selO, 'Efectivo - Taquilla'); 
+        addOpt(selO, 'Zelle (Institucional)'); addOpt(selD, 'Zelle (Institucional)'); 
+        addOpt(selO, 'Banesco Panamá (Mony)'); addOpt(selD, 'Banesco Panamá (Mony)'); 
+        addOpt(selO, 'Mercantil Panamá'); addOpt(selD, 'Mercantil Panamá'); 
+        addOpt(selO, 'Facebank (Pipol Pay)'); addOpt(selD, 'Facebank (Pipol Pay)'); 
+    } 
+    else if (moneda === 'BS') { 
+        addOpt(selO, 'Efectivo - Taquilla'); 
+        addOpt(selO, 'Banco de Venezuela (BDV)'); addOpt(selD, 'Banco de Venezuela (BDV)'); 
+        addOpt(selO, 'Banesco'); addOpt(selD, 'Banesco'); 
+        addOpt(selO, 'Banco Mercantil'); addOpt(selD, 'Banco Mercantil'); 
+        addOpt(selO, 'BBVA Provincial'); addOpt(selD, 'BBVA Provincial'); 
+        addOpt(selO, 'Pago Móvil Interbancario'); addOpt(selD, 'Pago Móvil Interbancario'); 
+    } 
+    else if (moneda === 'PESOS') { 
+        addOpt(selO, 'Efectivo - Taquilla'); 
+        addOpt(selO, 'Bancolombia'); addOpt(selD, 'Bancolombia'); 
+        addOpt(selO, 'Nequi'); addOpt(selD, 'Nequi'); 
+        addOpt(selO, 'Daviplata (Davivienda)'); addOpt(selD, 'Daviplata (Davivienda)'); 
+        addOpt(selO, 'Banco de Bogotá'); addOpt(selD, 'Banco de Bogotá');
+        addOpt(selO, 'BBVA Colombia'); addOpt(selD, 'BBVA Colombia');
     }
+}
     document.getElementById('moneda').addEventListener('change', () => { updateTotalFromMeses(); populateBancos(document.getElementById('moneda').value); });
 </script>
 </body>
