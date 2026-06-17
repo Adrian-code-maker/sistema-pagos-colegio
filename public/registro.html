@@ -35,8 +35,8 @@
         
         select.form-control { padding-left: 12px; cursor: pointer; }
 
-        /* Cuadrícula limpia de 4 columnas para escritorio */
-        .alumno-grid { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1fr; gap: 12px; }
+        /* REPARADO: Cuadrícula de 2 columnas para dar espacio a los inputs */
+        .alumno-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         .btn-add { background: none; border: none; color: #2563eb; font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 12px; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-add:hover { color: var(--primary); }
@@ -58,12 +58,11 @@
             .alumno-grid { grid-template-columns: 1fr; gap: 12px; }
         }
         html, body {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
-}
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100%;
+        }
     </style>
-    
 </head>
 <body>
 
@@ -89,20 +88,19 @@
                         </div>
                     </div>
                     <div class="form-group">
-    <label>Cédula de Identidad</label>
-    <div class="input-wrapper" style="display: flex; gap: 8px;">
-        <!-- Selector V / E Estético -->
-        <div style="position: relative; flex-shrink: 0; width: 75px;">
-            <i class='bx bx-id-card' style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; z-index: 5;"></i>
-            <select id="nacionalidad" class="form-control" style="padding-left: 35px; padding-right: 5px; cursor: pointer; height: 100%;">
-                <option value="V">V</option>
-                <option value="E">E</option>
-            </select>
-        </div>
-        <!-- Input del número numérico -->
-        <input type="text" id="cedula" class="form-control" required placeholder="12345678" style="padding-left: 12px; flex: 1;">
-    </div>
-</div>
+                        <label>Cédula de Identidad</label>
+                        <div class="input-wrapper" style="display: flex; gap: 8px;">
+                            <div style="position: relative; flex-shrink: 0; width: 75px;">
+                                <i class='bx bx-id-card' style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; z-index: 5;"></i>
+                                <select id="nacionalidad" class="form-control" style="padding-left: 35px; padding-right: 5px; cursor: pointer; height: 100%;">
+                                    <option value="V">V</option>
+                                    <option value="E">E</option>
+                                </select>
+                            </div>
+                            <input type="text" id="cedula" class="form-control" required placeholder="12345678" style="padding-left: 12px; flex: 1;">
+                        </div>
+                    </div>
+                </div>
 
                 <div class="form-grid">
                     <div class="form-group">
@@ -179,7 +177,7 @@
     </div>
 
     <script>
-        // Clonador inteligente de filas de alumnos
+        // Clonador inteligente de filas de alumnos (actualizado al nuevo grid 2x2)
         function agregarAlumno() { 
             const html = `
             <div class="alumno-item" style="margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-bottom: 15px;">
@@ -251,31 +249,39 @@
                 }); 
             });
 
-           const nacionalidad = document.getElementById('nacionalidad').value;
-const cedulaNumero = document.getElementById('cedula').value.trim();
-const cedulaFinal = `${nacionalidad}-${cedulaNumero}`;
+            const nacionalidad = document.getElementById('nacionalidad').value;
+            const cedulaNumero = document.getElementById('cedula').value.trim();
+            const cedulaFinal = `${nacionalidad}-${cedulaNumero}`;
 
-const data = { 
-    nombre_completo: document.getElementById('nombre').value, 
-    cedula: cedulaFinal, // Envia "V-12345678" o "E-12345678"
-    correo: document.getElementById('correo').value, 
-    contrasena: document.getElementById('contrasena').value, 
-    alumnos 
-};
+            const data = { 
+                nombre_completo: document.getElementById('nombre').value, 
+                cedula: cedulaFinal, // Envia "V-12345678" o "E-12345678"
+                correo: document.getElementById('correo').value, 
+                contrasena: document.getElementById('contrasena').value, 
+                alumnos 
             };
             
+            // REPARADO: Había un }; intruso aquí que rompía todo el código. Ya fue eliminado.
+            
             try {
-                const r = await fetch('/api/registro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const r = await fetch('/api/registro', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(data) 
+                });
                 const res = await r.json();
+                
                 if (r.ok) { 
                     alert('✅ Registro exitoso. Espere activación del administrador.'); 
                     window.location.href = 'login.html'; 
                 } else { 
-                    btnSubmit.innerHTML = "Registrar mi Cuenta"; btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = "Registrar mi Cuenta"; 
+                    btnSubmit.disabled = false;
                     alert('❌ ' + res.mensaje); 
                 }
             } catch (e) { 
-                btnSubmit.innerHTML = "Registrar mi Cuenta"; btnSubmit.disabled = false;
+                btnSubmit.innerHTML = "Registrar mi Cuenta"; 
+                btnSubmit.disabled = false;
                 alert('❌ Error conectando con el servidor.'); 
             }
         });
