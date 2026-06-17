@@ -230,25 +230,34 @@ app.get('/api/admin/pagos', async (req, res) => {
 });
 
 // ==========================================
-// RUTA ADMIN: APROBAR O RECHAZAR UN PAGO
+// 🔄 RUTA ADMIN: APROBAR O RECHAZAR UN PAGO
 // ==========================================
 app.put('/api/admin/pagos/:id/estatus', async (req, res) => {
-  const { id } = req.params;
-  const { estatus_pago } = req.body; // Recibe 'aprobado' o 'rechazado'
+    const { id } = req.params;
+    const { estatus_pago, mensaje_rechazo } = req.body;
 
-  try {
-    // Aseguramos que la columna para el mensaje de rechazo exista
-    await pool.query("ALTER TABLE pagos ADD COLUMN IF NOT EXISTS mensaje_rechazo TEXT;");
-
-    // Si se envía un mensaje de rechazo, lo guardamos junto al estatus
-    const mensajeRechazo = req.body.mensaje_rechazo || null;
-    const query = 'UPDATE pagos SET estatus_pago = $1, mensaje_rechazo = $2 WHERE id = $3;';
-    await pool.query(query, [estatus_pago, mensajeRechazo, id]);
-    res.json({ ok: true, mensaje: `El pago ha sido marcado como ${estatus_pago} con éxito.` });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ ok: false, mensaje: 'Error al actualizar el estatus del pago.' });
-  }
+    try {
+        await pool.query("ALTER TABLE pagos ADD COLUMN IF NOT EXISTS mensaje_rechazo TEXT;");
+        
+        await pool.query('UPDATE pagos SET estatus_pago = $1, mensaje_rechazo = $2 WHERE id = $3', [estatus_pago, mensaje_rechazo || null, id]);
+        
+        if (estatus_pago === 'aprobado') {
+            // AQUÍ ESTABA EL ERROR: Cambié usuario_id por representante_id
+            const result = await pool.query('SELECT u.correo FROM usuarios u JOIN pagos p ON p.representante_id = u.id WHERE p.id = $1', [id]);
+            
+            if (result.rows.length > 0) {
+                const pagoData = await pool.query('SELECT monto, moneda, referencia FROM pagos WHERE id = $1', [id]);
+                console.log("¡Correo encontrado! Enviando factura a:", result.rows[0].correo);
+                enviarFacturaEmail(result.rows[0].correo, pagoData.rows[0]);
+            } else {
+                console.log("⚠️ No se encontró el correo para el pago ID:", id);
+            }
+        }
+        res.json({ ok: true, mensaje: "Pago actualizado" });
+    } catch (err) { 
+        console.error("Error en la ruta de aprobar:", err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // ==========================================
