@@ -63,6 +63,8 @@
         .btn-approve:hover { background: var(--success); color: white; }
         .btn-reject { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
         .btn-reject:hover { background: var(--danger); color: white; }
+        .btn-delete { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+        .btn-delete:hover { background: var(--danger); color: white; }
         .btn-view { background: #f8fafc; color: #334155; border: 1px solid var(--border); text-decoration: none; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
         .hijos-list { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; margin: 0; }
         .hijos-list li { background: #f1f5f9; color: #475569; padding: 3px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #e2e8f0; font-weight: 500; }
@@ -139,7 +141,7 @@
     <div class="table-container"><table><thead><tr><th>Representante</th><th>Cédula</th><th>Correo</th><th>Rol</th><th>Estatus</th><th>Alumnos</th><th style="width: 100px;">Acción</th></tr></thead><tbody id="tablaUsuariosBody"></tbody></table></div>
     
     <div class="section-title">Pagos Reportados</div>
-    <div class="table-container"><table><thead><tr><th>Representante</th><th>Mes</th><th>Monto</th><th>Referencia</th><th>Ruta Bancaria</th><th>Comprobante</th><th>Estatus</th><th style="width: 80px;">Acciones</th></tr></thead><tbody id="tablaPagosBody"></tbody></table></div>
+    <div class="table-container"><table><thead><tr><th>Representante</th><th>Mes</th><th>Monto</th><th>Referencia</th><th>Ruta Bancaria</th><th>Comprobante</th><th>Estatus</th><th style="width: 110px;">Acciones</th></tr></thead><tbody id="tablaPagosBody"></tbody></table></div>
 </div>
 
 <script>
@@ -178,7 +180,7 @@
 
                 tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${u.nombre_completo}</b></td><td>${u.cedula}</td><td>${u.correo}</td><td><span class="badge ${u.rol==='admin'?'badge-admin':''}">${u.rol}</span></td><td><span class="badge ${badgeClass}">${u.estatus}</span></td><td><ul class="hijos-list">${hijos}</ul></td><td>${accionesHTML}</td></tr>`);
             });
-            filtrarTablas(); // Mantiene el filtro de la lupa activo tras actualizar
+            filtrarTablas(); 
         } catch(e) { console.error(e); }
     }
 
@@ -191,11 +193,20 @@
             res.pagos.forEach(p => {
                 const mon = p.moneda === 'BS' ? 'Bs' : (p.moneda === 'PESOS' || p.moneda === 'COP' ? 'COL$' : '$');
                 let badgeClass = p.estatus_pago === 'aprobado' ? 'badge-active' : (p.estatus_pago === 'rechazado' ? 'badge-danger' : 'badge-pending');
-                const acciones = p.estatus_pago === 'pendiente' ? `<div style="display:flex;"><button class="btn-action btn-approve" title="Aprobar" onclick="aprobarPago(${p.id})"><i class='bx bx-check'></i></button><button class="btn-action btn-reject" title="Rechazar" onclick="rechazarPago(${p.id})"><i class='bx bx-x'></i></button></div>` : `<span style="color:#94a3b8; font-size:12px; font-weight:600;">Procesado</span>`;
+                
+                // Botón de eliminar para CUALQUIER pago
+                const btnEliminarPago = `<button class="btn-action btn-delete" style="margin-left:4px;" title="Borrar Pago Permanentemente" onclick="eliminarPago(${p.id})"><i class='bx bx-trash'></i></button>`;
+                
+                let acciones = '';
+                if (p.estatus_pago === 'pendiente') {
+                    acciones = `<div style="display:flex; align-items:center;"><button class="btn-action btn-approve" title="Aprobar" onclick="aprobarPago(${p.id})"><i class='bx bx-check'></i></button><button class="btn-action btn-reject" title="Rechazar" onclick="rechazarPago(${p.id})"><i class='bx bx-x'></i></button>${btnEliminarPago}</div>`;
+                } else {
+                    acciones = `<div style="display:flex; align-items:center;"><span style="color:#94a3b8; font-size:12px; font-weight:600; margin-right:8px;">Procesado</span>${btnEliminarPago}</div>`;
+                }
                 
                 tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${p.representante_nombre}</b></td><td>${p.mes_pagado}</td><td style="white-space:nowrap;">${mon} ${p.monto}</td><td><code>${p.referencia}</code></td><td>${p.banco_origen} ➔ ${p.banco_destino}</td><td><a href="/uploads/${p.comprobante}" target="_blank" class="btn-view">Ver</a></td><td><span class="badge ${badgeClass}">${p.estatus_pago}</span></td><td>${acciones}</td></tr>`);
             });
-            filtrarTablas(); // Mantiene el filtro de la lupa activo tras actualizar
+            filtrarTablas(); 
         } catch(e) { console.error(e); }
     }
 
@@ -252,18 +263,47 @@
         }
     }
 
-    // ==========================================
-    // ⏳ SISTEMA DE ACTUALIZACIÓN AUTOMÁTICA
-    // ==========================================
+    // NUEVA FUNCIÓN: Eliminar Pago pidiendo Contraseña
+    async function eliminarPago(id) {
+        const { value: password } = await Swal.fire({
+            title: 'Se requiere autorización',
+            text: 'Ingrese su contraseña de administrador para borrar este pago definitivamente:',
+            input: 'password',
+            inputPlaceholder: 'Contraseña de admin',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, Borrar Pago'
+        });
+
+        if (password) {
+            try {
+                const r = await fetch(`/api/admin/pagos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_id: user.id, admin_password: password })
+                });
+                const res = await r.json();
+                
+                if (r.ok) {
+                    Swal.fire('¡Eliminado!', 'El pago ha sido borrado del historial.', 'success');
+                    cargarPagos();
+                } else {
+                    Swal.fire('Acceso Denegado', res.mensaje || 'Contraseña incorrecta.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Fallo de conexión', 'error');
+            }
+        }
+    }
+
     if (user && user.rol === 'admin') { 
-        // 1. Carga inicial inmediata
         cargarUsuarios(); 
         cargarPagos(); 
         cargarPrecioMensualidad();
 
-        // 2. Temporizador: Actualiza las tablas cada 15 segundos silenciosamente
         setInterval(() => {
-            // Solo actualiza si no hay un modal de SweetAlert abierto (para no interrumpir al usuario si está borrando a alguien)
             if (!Swal.isVisible()) {
                 cargarUsuarios();
                 cargarPagos();
