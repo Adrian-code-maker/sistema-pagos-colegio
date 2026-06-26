@@ -164,24 +164,69 @@
         }
     }
 
+    // NUEVA FUNCIÓN: Bloquea las casillas de los meses que ya están pagados o pendientes
+    function bloquearMesesPagados(mesesBloqueados) {
+        const checks = document.querySelectorAll('#mesList input[type=checkbox]');
+        checks.forEach(cb => {
+            if (mesesBloqueados.includes(cb.value)) {
+                cb.disabled = true;
+                cb.checked = false; // Desmarcar por seguridad
+                cb.parentElement.style.opacity = '0.5'; // Darle un estilo "apagado"
+                cb.parentElement.style.cursor = 'not-allowed';
+                cb.style.cursor = 'not-allowed';
+                cb.parentElement.title = 'Este mes ya está reportado o pagado.';
+            } else {
+                cb.disabled = false;
+                cb.parentElement.style.opacity = '1';
+                cb.parentElement.style.cursor = 'pointer';
+                cb.style.cursor = 'pointer';
+                cb.parentElement.title = '';
+            }
+        });
+        updateTotalFromMeses(); // Recalcular monto por si había meses seleccionados
+    }
+
     async function cargarHistorialPagos() {
         const tbody = document.getElementById('tablaHistorialBody');
         try {
             const r = await fetch(`/api/admin/pagos`); const res = await r.json(); tbody.innerHTML = '';
             const misPagos = res.pagos ? res.pagos.filter(p => p.usuario_id == session.id || p.representante_nombre.toLowerCase().includes(session.nombre.toLowerCase())) : [];
+            
             if (misPagos.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted); text-align:center; padding:20px;">Usted no ha reportado pagos todavía.</td></tr>`; return; }
+            
             const toNotify = [];
+            let mesesBloqueados = []; // Aquí guardaremos los meses que no se pueden volver a marcar
+
             misPagos.forEach(p => {
                 let displayMonths = p.mes_pagado;
-                try { const parsed = typeof p.mes_pagado === 'string' ? JSON.parse(p.mes_pagado) : p.mes_pagado; if (Array.isArray(parsed)) displayMonths = parsed.join(', '); } catch (e) {}
+                let parsed = [];
+                try { 
+                    parsed = typeof p.mes_pagado === 'string' ? JSON.parse(p.mes_pagado) : p.mes_pagado; 
+                    if (Array.isArray(parsed)) displayMonths = parsed.join(', '); 
+                } catch (e) {
+                    parsed = [p.mes_pagado];
+                }
+                
+                // Si el pago NO está rechazado, se guarda el mes para bloquearlo
+                if (p.estatus_pago !== 'rechazado') {
+                    if (Array.isArray(parsed)) mesesBloqueados.push(...parsed);
+                    else mesesBloqueados.push(parsed);
+                }
+
                 const monSymbol = p.moneda === 'BS' ? 'Bs' : (p.moneda === 'PESOS' || p.moneda === 'COP' ? 'COL$' : '$');
                 let classStatus = p.estatus_pago === 'aprobado' ? 'status-aprobado' : (p.estatus_pago === 'rechazado' ? 'status-rechazado' : 'status-pendiente');
+                
                 tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${displayMonths}</b></td><td style="color:var(--primary); font-weight:700;">${monSymbol} ${p.monto}</td><td><code>${p.referencia}</code></td><td style="font-size:12px; color:#64748b;">${p.banco_origen} ➔ ${p.banco_destino}</td><td><a href="/uploads/${p.comprobante}" target="_blank" class="btn-view" style="color:var(--primary-light); text-decoration:none; font-weight:600;">Ver Capture</a></td><td><span class="badge-status ${classStatus}">${p.estatus_pago}</span></td></tr>`);
+                
                 if (p.estatus_pago === 'aprobado' || p.estatus_pago === 'rechazado') {
                     const html = p.estatus_pago === 'aprobado' ? `<b>${displayMonths}</b>: Su pago ha sido <span style="color:#16a34a">APROBADO</span>.` : `<b>${displayMonths}</b>: Su pago fue <span style="color:#ef4444">RECHAZADO</span>.<br><b>Motivo:</b> ${p.mensaje_rechazo || 'No especificado'}`;
                     toNotify.push({ id: p.id, html });
                 }
             });
+
+            // Llamar a la función que bloquea las casillas
+            bloquearMesesPagados(mesesBloqueados);
+
             window.__pagosPendingNotifications = toNotify;
             const seen = JSON.parse(localStorage.getItem('pagosNotificados') || '[]'); const newOnes = toNotify.filter(n => !seen.includes(n.id));
             const countEl = document.getElementById('notifCount'); if (newOnes.length > 0) { countEl.style.display = 'inline-block'; countEl.innerText = newOnes.length; } else { countEl.style.display = 'none'; }
@@ -200,6 +245,7 @@
     document.getElementById('btnUserMenu').addEventListener('click', () => {
         Swal.fire({ title: 'Mi cuenta', html: `<button id="swal-change-pass" class="swal2-confirm swal2-styled">Cambiar contraseña</button>`, showConfirmButton: false, didOpen: () => { document.getElementById('swal-change-pass').addEventListener('click', async () => { Swal.close(); cambiarPassRep(); }); } });
     });
+    
     async function cambiarPassRep() {
         const { value: f } = await Swal.fire({ title: 'Cambiar contraseña', html: `<input id="swal-current" type="password" class="swal2-input" placeholder="Actual"><input id="swal-new" type="password" class="swal2-input" placeholder="Nueva"><input id="swal-confirm" type="password" class="swal2-input" placeholder="Confirmar">`, preConfirm: () => { return { current: document.getElementById('swal-current').value, neu: document.getElementById('swal-new').value, conf: document.getElementById('swal-confirm').value }; } });
         if (!f || f.neu !== f.conf) return;
@@ -210,12 +256,12 @@
         e.preventDefault(); const btn = document.getElementById('btnEnviar'); btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Subiendo Reporte..."; btn.disabled = true;
         const checks = Array.from(document.querySelectorAll('#mesList input[type=checkbox]')); const selectedMonths = checks.filter(c => c.checked).map(c => c.value);
         const montoVal = document.getElementById('monto').value; const comprobanteFile = document.getElementById('comprobante').files[0];
-        if (selectedMonths.length === 0 || !montoVal || !comprobanteFile) { btn.innerHTML = "Enviar Reporte"; btn.disabled = false; return; }
+        if (selectedMonths.length === 0 || !montoVal || !comprobanteFile) { btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; return; }
         const formData = new FormData(); formData.append('representante_id', session.id); formData.append('mes_pagado', JSON.stringify(selectedMonths)); formData.append('monto', montoVal); formData.append('moneda', document.getElementById('moneda').value); formData.append('banco_origen', document.getElementById('banco_origen').value); formData.append('banco_destino', document.getElementById('banco_destino').value); formData.append('referencia', document.getElementById('referencia').value); formData.append('comprobante', comprobanteFile);
         try {
             const r = await fetch('/api/representante/pagos', { method: 'POST', body: formData });
-            if (r.ok) { Swal.fire('¡Éxito!', 'Pago reportado.', 'success').then(() => { document.getElementById('pagoForm').reset(); updateTotalFromMeses(); btn.innerHTML = "Enviar Reporte"; btn.disabled = false; cargarHistorialPagos(); }); }
-        } catch (e) { btn.innerHTML = "Enviar Reporte"; btn.disabled = false; }
+            if (r.ok) { Swal.fire('¡Éxito!', 'Pago reportado.', 'success').then(() => { document.getElementById('pagoForm').reset(); updateTotalFromMeses(); btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; cargarHistorialPagos(); }); }
+        } catch (e) { btn.innerHTML = "Enviar Reporte de Pago"; btn.disabled = false; }
     });
 
     if (session && session.id) {
@@ -290,9 +336,6 @@
     }
 }
     document.getElementById('moneda').addEventListener('change', () => { updateTotalFromMeses(); populateBancos(document.getElementById('moneda').value); });
-</script>
-</body>
-</html>
 </script>
 </body>
 </html>
