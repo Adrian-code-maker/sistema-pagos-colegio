@@ -23,9 +23,15 @@
         .main-content { padding: 25px 30px; max-width: 1400px; margin: 0 auto; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 18px; }
         .card-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        
         .welcome-banner { background: white; border-left: 4px solid var(--primary-light); padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .welcome-banner h2 { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 2px; }
+        .welcome-banner h2 { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
         .welcome-banner p { font-size: 13px; color: var(--text-muted); }
+        
+        /* Indicador de actualización en vivo */
+        .live-indicator { display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
         .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
         .search-box { position: relative; flex: 1; max-width: 400px; }
         .search-box i { position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 16px; }
@@ -43,10 +49,8 @@
         .btn-fijar i { font-size:16px; }
         .table-container { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; margin-bottom: 30px; }
         
-        /* Ajustes de Tabla para evitar Scroll Horizontal */
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th { background: #f8fafc; padding: 10px; font-weight: 600; color: #64748b; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; }
-        /* El secreto para evitar el scroll: word-break y max-width */
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; max-width: 180px; }
         
         .badge { display: inline-flex; padding: 3px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; }
@@ -117,8 +121,8 @@
     </div>
     <div class="welcome-banner">
         <div>
-            <h2 id="adminNombre">Panel de Control Financiero</h2>
-            <p>Auditoría general del sistema.</p>
+            <h2 id="adminNombre"><span class="live-indicator" title="Conexión en vivo"></span> Panel de Control Financiero</h2>
+            <p>Auditoría general del sistema. Actualización automática activada.</p>
         </div>
     </div>
     <div class="toolbar">
@@ -144,10 +148,9 @@
     try { user = JSON.parse(localStorage.getItem('usuarioLogueado')); } catch(e) { console.error("Error leyendo la sesión:", e); }
     if (!user || user.rol !== 'admin') { window.location.href = 'login.html'; } else {
         const nombreAdmin = user.nombre || "Administrador";
-        document.getElementById('adminNombre').innerText = `¡Bienvenido, ${nombreAdmin}! 👋`;
+        document.getElementById('adminNombre').innerHTML = `<span class="live-indicator" title="Conexión en vivo"></span> ¡Bienvenido, ${nombreAdmin}! 👋`;
     }
 
-    // Tu función de la lupa (ya funciona perfecto filtrando las filas de ambas tablas)
     function filtrarTablas() {
         let f = document.getElementById('buscador').value.toLowerCase();
         document.querySelectorAll('tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(f) ? '' : 'none');
@@ -169,13 +172,13 @@
                 });
                 const badgeClass = u.estatus === 'pendiente' ? 'badge-pending' : 'badge-active';
                 
-                // Botón de aprobar + Texto de "Activo" + Botón de Eliminar
                 const botonAprobar = u.estatus === 'pendiente' ? `<button class="btn-view" style="background:var(--primary); color:white; border:none; cursor:pointer; padding:5px 12px; margin-right:5px;" onclick="aprobarUsuario(${u.id})">Aprobar</button>` : `<span style="color:#94a3b8; font-size: 12px; font-weight:600; margin-right:8px;">Activo</span>`;
                 const botonEliminar = `<button class="btn-action btn-reject" title="Eliminar Usuario" onclick="eliminarUsuario(${u.id})"><i class='bx bx-trash'></i></button>`;
                 const accionesHTML = `<div style="display:flex; align-items:center;">${botonAprobar}${botonEliminar}</div>`;
 
                 tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${u.nombre_completo}</b></td><td>${u.cedula}</td><td>${u.correo}</td><td><span class="badge ${u.rol==='admin'?'badge-admin':''}">${u.rol}</span></td><td><span class="badge ${badgeClass}">${u.estatus}</span></td><td><ul class="hijos-list">${hijos}</ul></td><td>${accionesHTML}</td></tr>`);
             });
+            filtrarTablas(); // Mantiene el filtro de la lupa activo tras actualizar
         } catch(e) { console.error(e); }
     }
 
@@ -192,6 +195,7 @@
                 
                 tbody.insertAdjacentHTML('beforeend', `<tr><td><b>${p.representante_nombre}</b></td><td>${p.mes_pagado}</td><td style="white-space:nowrap;">${mon} ${p.monto}</td><td><code>${p.referencia}</code></td><td>${p.banco_origen} ➔ ${p.banco_destino}</td><td><a href="/uploads/${p.comprobante}" target="_blank" class="btn-view">Ver</a></td><td><span class="badge ${badgeClass}">${p.estatus_pago}</span></td><td>${acciones}</td></tr>`);
             });
+            filtrarTablas(); // Mantiene el filtro de la lupa activo tras actualizar
         } catch(e) { console.error(e); }
     }
 
@@ -204,7 +208,6 @@
         });
     }
 
-    // NUEVA FUNCIÓN: Eliminar Usuario
     function eliminarUsuario(id) {
         Swal.fire({
             title: '¿Estás seguro?',
@@ -220,7 +223,7 @@
                     const r = await fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' });
                     if (r.ok) {
                         Swal.fire('¡Eliminado!', 'El usuario ha sido borrado del sistema.', 'success');
-                        cargarUsuarios(); // Recarga la tabla
+                        cargarUsuarios(); 
                     } else {
                         Swal.fire('Error', 'Hubo un problema al intentar borrar el usuario.', 'error');
                     }
@@ -249,7 +252,24 @@
         }
     }
 
-    if (user && user.rol === 'admin') { cargarUsuarios(); cargarPagos(); }
+    // ==========================================
+    // ⏳ SISTEMA DE ACTUALIZACIÓN AUTOMÁTICA
+    // ==========================================
+    if (user && user.rol === 'admin') { 
+        // 1. Carga inicial inmediata
+        cargarUsuarios(); 
+        cargarPagos(); 
+        cargarPrecioMensualidad();
+
+        // 2. Temporizador: Actualiza las tablas cada 15 segundos silenciosamente
+        setInterval(() => {
+            // Solo actualiza si no hay un modal de SweetAlert abierto (para no interrumpir al usuario si está borrando a alguien)
+            if (!Swal.isVisible()) {
+                cargarUsuarios();
+                cargarPagos();
+            }
+        }, 15000); 
+    }
 
     async function cargarPrecioMensualidad() {
         try {
@@ -281,8 +301,6 @@
             }
         } catch (e) { Swal.fire('Error', 'Fallo al actualizar', 'error'); }
     });
-
-    if (user && user.rol === 'admin') { cargarPrecioMensualidad(); }
 
     function renderMesesModal(precio, containerId = 'modal-meses') {
         const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
