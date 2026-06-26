@@ -176,7 +176,39 @@ app.get('/api/admin/pagos', async (req, res) => {
     res.json({ ok: true, pagos: resultado.rows });
   } catch (error) { res.status(500).json({ ok: false, mensaje: 'Error.' }); }
 });
+// ==========================================
+// 🗑️ RUTA ADMIN: ELIMINAR USUARIO Y SUS DATOS
+// ==========================================
+app.delete('/api/admin/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+    const client = await pool.connect();
 
+    try {
+        await client.query('BEGIN');
+        
+        // 1. Borramos primero los alumnos asociados al representante
+        await client.query('DELETE FROM alumnos WHERE representante_id = $1', [id]);
+        
+        // 2. Borramos los pagos asociados al representante
+        await client.query('DELETE FROM pagos WHERE representante_id = $1', [id]);
+        
+        // 3. Finalmente, borramos al representante de la tabla usuarios
+        const result = await client.query('DELETE FROM usuarios WHERE id = $1', [id]);
+        
+        if (result.rowCount === 0) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        await client.query('COMMIT');
+        res.json({ ok: true, mensaje: 'Usuario y sus datos eliminados.' });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Error al eliminar usuario:", error);
+        res.status(500).json({ ok: false, mensaje: 'Error al eliminar usuario.' });
+    } finally {
+        client.release();
+    }
+});
 // ==========================================
 // 🔄 RUTA ADMIN: APROBAR O RECHAZAR PAGO (LA ÚNICA Y CORRECTA)
 // ==========================================
