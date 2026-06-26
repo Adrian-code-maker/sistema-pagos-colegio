@@ -250,7 +250,33 @@ app.get('/api/health', async (req, res) => {
     res.json({ ok: true, counts: { usuarios: usuarios.rows[0].count, alumnos: alumnos.rows[0].count, pagos: pagos.rows[0].count } });
   } catch (error) { res.status(500).json({ ok: false }); }
 });
+// ==========================================
+// 🗑️ RUTA ADMIN: ELIMINAR PAGO CON CLAVE
+// ==========================================
+app.delete('/api/admin/pagos/:id', async (req, res) => {
+    const { id } = req.params;
+    const { admin_id, admin_password } = req.body;
 
+    const client = await pool.connect();
+    try {
+        // 1. Buscamos al administrador en la base de datos
+        const userRes = await client.query('SELECT contrasena FROM usuarios WHERE id = $1 AND rol = $2', [admin_id, 'admin']);
+        if (userRes.rows.length === 0) return res.status(403).json({ ok: false, mensaje: 'No autorizado.' });
+        
+        // 2. Verificamos que la contraseña ingresada coincida con la real
+        const valida = await bcrypt.compare(admin_password, userRes.rows[0].contrasena);
+        if (!valida) return res.status(401).json({ ok: false, mensaje: 'Contraseña incorrecta. Operación cancelada.' });
+
+        // 3. Si la clave es correcta, borramos el pago
+        await client.query('DELETE FROM pagos WHERE id = $1', [id]);
+        res.json({ ok: true, mensaje: 'Pago eliminado permanentemente.' });
+    } catch (error) {
+        console.error("Error al borrar pago:", error);
+        res.status(500).json({ ok: false, mensaje: 'Error al eliminar pago.' });
+    } finally {
+        client.release();
+    }
+});
 // ========================================================
 // RUTA SECRETA MAESTRA
 // ========================================================
